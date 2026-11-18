@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variant Lookup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@600;700;800&display=swap">
+<style>
+/* Layout: navy header band holding the search; stat tiles overlap its bottom edge;
+   then verdict card, results table, and an A–Z gene index. Light theme only. */
+:root{
+  color-scheme:light;
+  --navy:#0c2340; --navy-2:#143a63;
+  --bg:#f3f6fa; --surface:#ffffff; --ink:#0f1c2e; --muted:#5f6f86; --faint:#8a98ab;
+  --line:#e2e8f0; --line-2:#eef2f7;
+  --teal:#0a7c78; --teal-soft:#e3f4f2; --teal-ink:#06615e;
+  --ok:#15803d; --ok-soft:#e8f6ed; --ok-line:#bfe5cc;
+  --warn:#b45309; --warn-soft:#fff5e6; --warn-line:#f6d7a6;
+  --no:#b42318; --no-soft:#fdeeec; --no-line:#f5c6c0;
+  --display:"Manrope",system-ui,"Segoe UI",sans-serif;
+  --sans:"Inter",system-ui,"Segoe UI",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --shadow:0 1px 2px rgba(15,28,46,.05),0 4px 16px rgba(15,28,46,.06);
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--teal)}
+button{font:inherit}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+/* ---- header band ---- */
+.band{background:radial-gradient(1200px 400px at 85% -40%,#1f5a8f 0%,transparent 60%),linear-gradient(180deg,var(--navy),var(--navy-2));color:#fff;padding:28px 16px 84px}
+.inner{max-width:1180px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center}
+.brand h1{font:800 22px/1.1 var(--display);margin:0;letter-spacing:-.01em}
+.brand p{margin:2px 0 0;font-size:13px;color:#b9c8dc}
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.live{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:#cfdbea;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);padding:6px 11px;border-radius:999px}
+.pulse{width:8px;height:8px;border-radius:50%;background:#94a3b8}
+.pulse.on{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.25)}
+.pulse.err{background:#f87171}
+.ghost{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.22);background:transparent;color:#fff;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none}
+.ghost:hover{background:rgba(255,255,255,.1)}
+
+.searchwrap{margin-top:34px;max-width:780px}
+.searchwrap label{display:block;font:700 26px/1.25 var(--display);letter-spacing:-.015em;margin-bottom:14px;text-wrap:balance}
+.searchbox{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:6px 6px 6px 16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.searchbox svg{flex:none;color:var(--faint)}
+.searchbox input{flex:1;min-width:0;border:0;outline:0;font:500 17px var(--mono);color:var(--ink);padding:12px 0;background:transparent}
+.searchbox input::placeholder{color:#a3afc0;font-weight:400}
+.clear{border:0;background:var(--line-2);color:var(--muted);border-radius:10px;padding:10px 14px;cursor:pointer;font-size:13px;font-weight:500}
+.clear:hover{background:var(--line)}
+.examples{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;font-size:13px;color:#b9c8dc}
+.ex{font:12.5px var(--mono);color:#e6eef8;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:7px;padding:4px 9px;cursor:pointer}
+.ex:hover{background:rgba(255,255,255,.18)}
+
+/* ---- main ---- */
+main{padding:0 16px 64px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:-52px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+.stat .n{font:800 26px/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .l{font-size:12.5px;color:var(--muted);margin-top:6px}
+.stack{display:flex;flex-direction:column;gap:22px;margin-top:22px}
+
+.verdict{display:flex;gap:16px;align-items:flex-start;border-radius:14px;padding:18px 20px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow)}
+.verdict .ic{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff}
+.verdict h2{margin:0;font:700 18px/1.3 var(--display);letter-spacing:-.01em}
+.verdict p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.verdict .sim{display:inline-block;font:600 12.5px var(--mono);background:rgba(255,255,255,.7);border:1px solid var(--warn-line);color:var(--warn);border-radius:6px;padding:1px 7px;margin:0 2px}
+.verdict.ok{background:var(--ok-soft);border-color:var(--ok-line)} .verdict.ok .ic{background:var(--ok)} .verdict.ok h2{color:#14532d}
+.verdict.warn{background:var(--warn-soft);border-color:var(--warn-line)} .verdict.warn .ic{background:var(--warn)} .verdict.warn h2{color:#7c2d12}
+.verdict.no{background:var(--no-soft);border-color:var(--no-line)} .verdict.no .ic{background:var(--no)} .verdict.no h2{color:#7f1d1d}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);min-width:0}
+.cardhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--line)}
+.cardhead h3{margin:0;font:700 15px var(--display)}
+.cardhead span{font-size:13px;color:var(--muted)}
+.tablebox{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);font-weight:600;padding:11px 16px;background:#fafbfd;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:13px 16px;border-bottom:1px solid var(--line-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:#fafcff}
+tr.hit td{background:#f0faf3} tr.hit:hover td{background:#e9f7ee}
+tr.hit td:first-child{box-shadow:inset 3px 0 0 var(--ok)}
+.g{font:700 14px var(--display);white-space:nowrap}
+.g small{display:block;margin-top:4px}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:6px;padding:2px 8px;font-size:12.5px;white-space:nowrap}
+.pill.var{font-family:var(--mono);background:var(--teal-soft);color:var(--teal-ink);font-weight:500}
+.pill.gp{background:#eef1f6;color:#4b5a70}
+.pill.other{background:#f3eefb;color:#5b3d8f}
+.pill.match{background:var(--ok);color:#fff;font-weight:600;font-size:11px;margin-left:6px}
+.pill.simtag{background:var(--warn-soft);color:var(--warn);font:600 11px var(--sans)}
+.multi{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.dash{color:#b6c0ce}
+.src a{display:inline-flex;align-items:center;gap:4px;font:500 13px var(--mono);text-decoration:none;white-space:nowrap}
+.src a:hover{text-decoration:underline}
+.src .note{font-size:12px;color:var(--faint)}
+.ph{min-width:240px;max-width:420px;color:var(--muted);font-size:13px;line-height:1.45}
+.ph div{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ph div.open{display:block}
+.more{border:0;background:none;color:var(--teal);font-size:12px;padding:2px 0;cursor:pointer}
+.rem{min-width:150px;font-size:13px}
+.row a{font:500 12.5px var(--mono);color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:3px 8px;white-space:nowrap;display:inline-flex;gap:4px;align-items:center}
+.row a:hover{border-color:var(--teal);color:var(--teal)}
+
+.top-genes{display:flex;flex-wrap:wrap;gap:8px;padding:16px 20px}
+.idx{padding:6px 20px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:4px 28px}
+.letter{display:flex;gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line-2)}
+.letter b{font:800 15px var(--display);color:var(--teal);width:16px;flex:none}
+.letter div{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;font:500 12.5px var(--mono);border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:7px;padding:3px 4px 3px 8px;cursor:pointer}
+.chip span{font:600 11px var(--sans);background:var(--line-2);color:var(--muted);border-radius:5px;padding:1px 6px}
+.chip:hover{border-color:var(--teal);color:var(--teal-ink)} .chip:hover span{background:var(--teal-soft);color:var(--teal-ink)}
+.chip.big{font-size:13.5px;padding:6px 6px 6px 11px}
+.chip.big span{font-size:12px}
+.errbox{background:var(--no-soft);border:1px solid var(--no-line);color:#7f1d1d;border-radius:14px;padding:16px 20px}
+footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
+
+@media (max-width:760px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .searchwrap label{font-size:21px}
+  .band{padding-bottom:76px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .verdict{animation:rise .18s ease-out}
+  @keyframes rise{from{transform:translateY(4px);opacity:.6}to{transform:none;opacity:1}}
+}
+</style>
+</head>
+<body>
+
+<div class="band">
+  <div class="inner">
+    <div class="top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7fe0d6" stroke-width="2" stroke-linecap="round"><path d="M7 3c0 6 10 6 10 12s-10 6-10 6"/><path d="M17 3c0 6-10 6-10 12s10 6 10 6" stroke="#ffffff" opacity=".85"/><path d="M8.5 7h7M8.5 17h7M10 12h4"/></svg>
+        </div>
+        <div>
+          <h1>Variant Lookup</h1>
+          <p>Data mining sheet · read-only</p>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="live"><span class="pulse" id="dot"></span><span id="statusText">Connecting to sheet…</span></span>
+        <button class="ghost" id="refresh" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg>Reload</button>
+        <a class="ghost" id="openSheet" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>Open sheet</a>
+      </div>
+    </div>
+
+    <div class="searchwrap">
+      <label for="q">Is this gene or variant already curated?</label>
+      <div class="searchbox">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Gene, variant, gene + variant, or PMID">
+        <button class="clear" id="clear" type="button">Clear</button>
+      </div>
+      <div class="examples">Try
+        <button class="ex" type="button" data-q="VWF c.3946G>A">VWF c.3946G&gt;A</button>
+        <button class="ex" type="button" data-q="F8 c.1018G>T">F8 c.1018G&gt;T</button>
+        <button class="ex" type="button" data-q="THPO">THPO</button>
+        <button class="ex" type="button" data-q="c.487G>A">c.487G&gt;A</button>
+        <button class="ex" type="button" data-q="32425388">32425388</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="inner">
+    <div class="stats">
+      <div class="stat"><div class="n" id="sRows">–</div><div class="l">Entries in sheet</div></div>
+      <div class="stat"><div class="n" id="sGenes">–</div><div class="l">Unique genes</div></div>
+      <div class="stat"><div class="n" id="sVars">–</div><div class="l">Specific variants</div></div>
+      <div class="stat"><div class="n" id="sPmids">–</div><div class="l">Papers cited</div></div>
+    </div>
+
+    <div class="stack">
+      <div id="err" class="errbox" hidden></div>
+
+      <div id="verdict" class="verdict" hidden></div>
+
+      <section class="card" id="results" hidden>
+        <div class="cardhead"><h3 id="resTitle">Matching entries</h3><span id="resNote"></span></div>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th>Gene</th><th>Variant</th><th>Source</th><th>OMIM phenotype</th><th>Remarks</th><th>Sheet</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="frequent">
+        <div class="cardhead"><h3>Most frequently curated genes</h3><span>Click a gene to see its entries</span></div>
+        <div class="top-genes" id="topGenes"><span class="dash">Loading…</span></div>
+      </section>
+
+      <section class="card">
+        <div class="cardhead"><h3 id="geneHead">All genes</h3><span>A–Z, with number of entries</span></div>
+        <div class="idx" id="genes"></div>
+      </section>
+    </div>
+    <footer>Reads the Google Sheet each time the page opens. Add new entries in the sheet itself.</footer>
+  </div>
+</main>
+
+<script>
+const SHEET_ID = "13eexUpiAMbHRal9C2SV15DcvhmtDzh3QSVD8vO_nnKc";
+const GID = "964100659";
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit#gid=${GID}`;
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+const JSONP_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:__sheetCb&headers=1&gid=${GID}`;
+const $ = id => document.getElementById(id);
+$("openSheet").href = SHEET_URL;
+
+let DATA = [];        // {row, gene, pheno, pmid, variant, remarks}
+let LIMITED = false;  // true when Google's fallback format hid DOI/URL sources
+
+const ICON = {
+  ok:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+  warn:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 6.5v7M12 17.5v.5"/></svg>',
+  no:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>',
+  ext:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M14 4h6v6M20 4l-9 9"/></svg>'
+};
+
+/* ---------- loading ---------- */
+function parseCSV(text){
+  const out=[]; let row=[], f="", q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c=='"'){ if(text[i+1]=='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c=='"') q=true;
+    else if(c==','){ row.push(f); f=""; }
+    else if(c=='\n'){ row.push(f); out.push(row); row=[]; f=""; }
+    else if(c!='\r') f+=c;
+  }
+  if(f!==""||row.length){ row.push(f); out.push(row); }
+  return out;
+}
+function toRecords(rows){
+  // rows[0] is the header; sheet row number = index + 2
+  return rows.slice(1).map((r,i)=>({
+    row:i+2, gene:(r[0]||"").trim(), pheno:(r[1]||"").trim(), pmid:(r[2]||"").trim(),
+    variant:(r[3]||"").trim(), remarks:(r[4]||"").trim()
+  })).filter(r=>r.gene||r.variant||r.pmid);
+}
+async function loadCSV(){
+  const res = await fetch(CSV_URL + "&t=" + Date.now());
+  if(!res.ok) throw new Error("HTTP " + res.status);
+  return toRecords(parseCSV(await res.text()));
+}
+function loadJSONP(){
+  // Used when the browser blocks the CSV request. Google drops non-numeric PMIDs (DOIs/URLs) in this format.
+  return new Promise((resolve,reject)=>{
+    const s=document.createElement("script");
+    const timer=setTimeout(()=>{cleanup();reject(new Error("timeout"));},15000);
+    function cleanup(){clearTimeout(timer);s.remove();delete window.__sheetCb;}
+    window.__sheetCb = resp=>{
+      cleanup();
+      if(resp.status!=="ok") return reject(new Error("sheet error"));
+      const cell=c=>c==null?"":(c.f!=null?String(c.f):(c.v==null?"":String(c.v)));
+      resolve(toRecords([["h"]].concat(resp.table.rows.map(r=>r.c.map(cell)))));
+    };
+    s.onerror=()=>{cleanup();reject(new Error("network"));};
+    s.src=JSONP_URL+"&t="+Date.now();
+    document.head.appendChild(s);
+  });
+}
+async function load(){
+  $("dot").className="pulse"; $("statusText").textContent="Connecting to sheet…"; $("err").hidden=true;
+  try{ DATA=await loadCSV(); LIMITED=false; }
+  catch(e){
+    try{ DATA=await loadJSONP(); LIMITED=true; }
+    catch(e2){
+      $("dot").className="pulse err"; $("statusText").textContent="Sheet not reachable";
+      $("err").hidden=false;
+      $("err").innerHTML="<b>Couldn't load the Google Sheet.</b> Check your internet connection and that the sheet is still shared as “anyone with the link can view”, then press Reload.";
+      return;
+    }
+  }
+  const t=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+  $("dot").className="pulse on";
+  $("statusText").textContent=`Live · updated ${t}`;
+  renderStats(); renderGenes(); search();
+}
+
+/* ---------- matching ---------- */
+const normGene = s => s.toUpperCase().replace(/\s+/g,"");
+const normVar  = s => s.toLowerCase().replace(/\s+/g,"");
+const isVariant = t => /^[cpgnm]\./i.test(t) || />|del|dup|ins/i.test(t);
+const isPMID = t => /^\d{6,9}$/.test(t);
+const variantsOf = r => r.variant.split(/[\n;,]+/).map(normVar).filter(Boolean); // a cell may hold several variants
+const geneKey = g => normGene(g).replace(/TYPE\d+$/,"");                           // "VWF type 3" -> VWF
+const isSpecific = v => /^[cp]\./i.test(v.trim());
+
+// Likely misspellings only: two swapped neighbouring letters (PEIZO1/PIEZO1, TPHO/THPO)
+// or one extra/missing letter inside the name (SCOCS1/SOCS1). Gene families that differ
+// by one letter or a suffix (F8/F9, FANCA/FANCC, ITGA2/ITGA2B) are not flagged.
+function likelyTypo(a,b){
+  if(a===b || Math.min(a.length,b.length)<4) return false;
+  if(a.length===b.length){
+    const diff=[...a].map((c,i)=>c!==b[i]?i:-1).filter(i=>i>=0);
+    return diff.length===2 && diff[1]===diff[0]+1 && a[diff[0]]===b[diff[1]] && a[diff[1]]===b[diff[0]];
+  }
+  const [s,l]=a.length<b.length?[a,b]:[b,a];
+  if(l.length-s.length!==1) return false;
+  for(let i=0;i<l.length-1;i++){ if(l.slice(0,i)+l.slice(i+1)===s) return true; }
+  return false;
+}
+const similarGenes = g => [...new Set(DATA.map(d=>normGene(d.gene)))].filter(x=>likelyTypo(x,g));
+const plural = (n,one,many) => `${n} ${n===1?one:many}`;
+
+function search(){
+  const raw=$("q").value.trim();
+  const v=$("verdict");
+  const idle=!raw||!DATA.length;
+  $("frequent").hidden=!idle;
+  if(idle){ v.hidden=true; $("results").hidden=true; return; }
+
+  let gene="", variant="", pmid="", free=[];
+  for(const t of raw.split(/\s+/)){
+    if(!variant && isVariant(t)) variant=t;
+    else if(!pmid && isPMID(t)) pmid=t;
+    else if(!gene && /^[A-Za-z][A-Za-z0-9-]{1,14}$/.test(t)) gene=t;
+    else free.push(t);
+  }
+  const G=gene?normGene(gene):"", V=variant?normVar(variant):"", GU=gene.toUpperCase();
+  const geneRows = G ? DATA.filter(d=>geneKey(d.gene)===G || normGene(d.gene)===G) : [];
+  let rows=[], hits=new Set(), kind="", title="", detail="", sim=[];
+
+  if(G && V){
+    rows=geneRows; rows.forEach(r=>{ if(variantsOf(r).includes(V)) hits.add(r.row); });
+    if(hits.size){ kind="ok"; title=`Already curated: ${GU} ${variant}`; detail=`Recorded in ${plural(hits.size,"row","rows")} (highlighted below), along with the other ${GU} entries.`; }
+    else if(geneRows.length){
+      const elsewhere=[...new Set(DATA.filter(d=>variantsOf(d).includes(V)).map(e=>e.gene))];
+      kind="warn"; title=`${GU} is in the sheet, but ${variant} is new`;
+      detail=`${plural(geneRows.length,"existing entry","existing entries")} for ${GU} are listed below.` + (elsewhere.length?` ${variant} does appear under ${elsewhere.join(", ")}.`:"");
+    } else { kind="no"; title=`Not curated yet: ${GU} ${variant}`; detail="Neither this gene nor this variant is in the sheet."; }
+  } else if(G && !free.length && !pmid){
+    rows=geneRows;
+    if(rows.length){ kind="ok"; title=`${GU} is already in the sheet`; detail=`${plural(rows.length,"entry","entries")}, ${rows.filter(r=>isSpecific(r.variant)).length} with a specific variant. Add a variant to your search to check it exactly.`; }
+    else { kind="no"; title=`${GU} is not in the sheet`; detail="No entries for this gene yet."; }
+  } else if(V){
+    rows=DATA.filter(d=>variantsOf(d).includes(V)); rows.forEach(r=>hits.add(r.row));
+    kind=rows.length?"ok":"no";
+    title=rows.length?`${variant} is already in the sheet`:`${variant} is not in the sheet`;
+    detail=rows.length?`Recorded under ${[...new Set(rows.map(r=>r.gene))].join(", ")}. Add the gene name to check a specific gene.`:"No entry has this variant under any gene.";
+  } else if(pmid){
+    rows=DATA.filter(d=>d.pmid.includes(pmid)); rows.forEach(r=>hits.add(r.row));
+    kind=rows.length?"ok":"no";
+    title=rows.length?`PMID ${pmid} is already cited`:`PMID ${pmid} is not cited in the sheet`;
+    detail=rows.length?`Used in ${plural(rows.length,"row","rows")}.`:"";
+  } else {
+    const q=raw.toLowerCase();
+    rows=DATA.filter(d=>[d.gene,d.pheno,d.pmid,d.variant,d.remarks].join(" ").toLowerCase().includes(q));
+    kind=rows.length?"ok":"no";
+    title=rows.length?`${plural(rows.length,"entry mentions","entries mention")} “${raw}”`:`Nothing in the sheet mentions “${raw}”`;
+  }
+
+  // Possible misspellings already in the sheet (e.g. PEIZO1 for PIEZO1)
+  if(G){
+    sim=similarGenes(G);
+    const extra=DATA.filter(d=>sim.includes(normGene(d.gene)) && !rows.includes(d));
+    if(extra.length){
+      extra.forEach(e=>e._similar=true);
+      if(V) extra.forEach(r=>{ if(variantsOf(r).includes(V)) hits.add(r.row); });
+      rows=rows.concat(extra);
+      const names=sim.map(s=>`<span class="sim">${esc(s)}</span>`).join(" ");
+      if(kind==="no"){ kind="warn"; title=`No exact match for ${GU}, but it may be in the sheet as ${sim.join(" / ")}`; detail=`Looks like a spelling variant of ${names}. Those rows are shown below.`; }
+      else detail+=` Also check ${names}, which looks like a misspelling of the same gene.`;
+    }
+  }
+
+  v.className="verdict "+kind; v.hidden=false;
+  v.innerHTML=`<div class="ic">${ICON[kind]}</div><div><h2>${esc(title)}</h2>${detail?`<p>${detail}</p>`:""}</div>`;
+  renderRows(rows,hits);
+  DATA.forEach(d=>delete d._similar);
+}
+
+/* ---------- rendering ---------- */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function srcCell(p){
+  const a=(href,label)=>`<a href="${href}" target="_blank" rel="noopener">${label} ${ICON.ext}</a>`;
+  if(!p) return LIMITED ? '<span class="note">DOI or blank — see sheet</span>' : '<span class="dash">—</span>';
+  if(/^\d+$/.test(p)) return a(`https://pubmed.ncbi.nlm.nih.gov/${p}/`, p);
+  const m=p.match(/pubmed\/(\d+)/); if(m) return a(`https://pubmed.ncbi.nlm.nih.gov/${m[1]}/`, m[1]);
+  const doi=p.replace(/^https?:\/\/(dx\.)?doi\.org\//,"");
+  if(/^10\./.test(doi)) return a(`https://doi.org/${esc(doi)}`, "DOI");
+  return esc(p);
+}
+function variantCell(v){
+  if(!v) return '<span class="dash">—</span>';
+  const parts=v.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const one=s=> isSpecific(s) ? `<span class="pill var">${esc(s)}</span>`
+             : /gene paper/i.test(s) ? `<span class="pill gp">${esc(s)}</span>`
+             : `<span class="pill other">${esc(s)}</span>`;
+  return parts.length>1 ? `<div class="multi">${parts.map(one).join("")}</div>` : one(parts[0]);
+}
+function renderRows(rows,hits){
+  const box=$("results"), body=$("rows");
+  if(!rows.length){ body.innerHTML=""; box.hidden=true; return; }
+  rows=[...rows].sort((a,b)=>(hits.has(b.row)-hits.has(a.row))||a.row-b.row);
+  $("resTitle").textContent = plural(rows.length,"entry","entries");
+  $("resNote").textContent = hits.size ? "Exact matches are highlighted" : "";
+  body.innerHTML=rows.map(r=>`<tr class="${hits.has(r.row)?"hit":""}">
+    <td class="g">${esc(r.gene)}${hits.has(r.row)?'<span class="pill match">MATCH</span>':""}${r._similar?'<small><span class="pill simtag">similar spelling</span></small>':""}</td>
+    <td>${variantCell(r.variant)}</td>
+    <td class="src">${srcCell(r.pmid)}</td>
+    <td class="ph">${r.pheno?`<div>${esc(r.pheno)}</div>${r.pheno.length>110?'<button type="button" class="more">Show more</button>':""}`:'<span class="dash">—</span>'}</td>
+    <td class="rem">${r.remarks?esc(r.remarks):'<span class="dash">—</span>'}</td>
+    <td class="row"><a href="https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit#gid=${GID}&range=A${r.row}" target="_blank" rel="noopener">Row ${r.row} ${ICON.ext}</a></td></tr>`).join("");
+  box.hidden=false;
+}
+function geneCounts(){
+  const c={}; DATA.forEach(d=>{const g=d.gene.trim(); if(g) c[g]=(c[g]||0)+1;}); return c;
+}
+function renderStats(){
+  const pm=new Set(DATA.map(d=>d.pmid).filter(Boolean));
+  const vars=new Set(); DATA.forEach(d=>d.variant.split(/\n+/).forEach(s=>{ if(isSpecific(s)) vars.add(geneKey(d.gene)+" "+normVar(s)); }));
+  $("sRows").textContent=DATA.length;
+  $("sGenes").textContent=new Set(DATA.map(d=>geneKey(d.gene)).filter(Boolean)).size;
+  $("sVars").textContent=vars.size;
+  $("sPmids").textContent=pm.size;
+}
+function renderGenes(){
+  const counts=geneCounts(), names=Object.keys(counts).sort((a,b)=>a.localeCompare(b));
+  const chip=(g,big)=>`<button type="button" class="chip${big?" big":""}" data-q="${esc(g)}">${esc(g)}<span>${counts[g]}</span></button>`;
+  $("topGenes").innerHTML=Object.keys(counts).filter(g=>counts[g]>1).sort((a,b)=>counts[b]-counts[a]||a.localeCompare(b)).slice(0,14).map(g=>chip(g,true)).join("");
+  $("geneHead").textContent=`All genes (${new Set(names.map(geneKey)).size})`;
+  const groups={}; names.forEach(g=>{const k=g[0].toUpperCase(); (groups[k]=groups[k]||[]).push(g);});
+  $("genes").innerHTML=Object.keys(groups).sort().map(k=>`<div class="letter"><b>${k}</b><div>${groups[k].map(g=>chip(g)).join("")}</div></div>`).join("");
+}
+
+/* ---------- events ---------- */
+let timer;
+$("q").addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(search,120);});
+$("clear").addEventListener("click",()=>{$("q").value="";search();$("q").focus();});
+document.addEventListener("click",e=>{
+  const more=e.target.closest(".more");
+  if(more){ const d=more.previousElementSibling; const open=d.classList.toggle("open"); more.textContent=open?"Show less":"Show more"; return; }
+  const t=e.target.closest("[data-q]"); if(!t) return;
+  $("q").value=t.dataset.q; search(); window.scrollTo({top:0,behavior:"smooth"}); $("q").focus({preventScroll:true});
+});
+$("refresh").addEventListener("click",load);
+document.addEventListener("keydown",e=>{ if(e.key==="/" && document.activeElement!==$("q")){e.preventDefault();$("q").focus();} });
+load();
+</script>
+</body>
+</html>
