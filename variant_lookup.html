@@ -24,6 +24,7 @@
   --shadow:0 1px 2px rgba(15,28,46,.05),0 4px 16px rgba(15,28,46,.06);
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{background:var(--bg)}
 body{margin:0;color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
 a{color:var(--teal)}
@@ -109,12 +110,17 @@ tr.hit td:first-child{box-shadow:inset 3px 0 0 var(--ok)}
 .row a:hover{border-color:var(--teal);color:var(--teal)}
 
 .top-genes{display:flex;flex-wrap:wrap;gap:8px;padding:16px 20px}
-.idx{padding:6px 20px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:4px 28px}
-.letter{display:flex;gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line-2)}
-.letter b{font:800 15px var(--display);color:var(--teal);width:16px;flex:none}
-.letter div{display:flex;flex-wrap:wrap;gap:6px}
-.chip{display:inline-flex;align-items:center;gap:6px;font:500 12.5px var(--mono);border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:7px;padding:3px 4px 3px 8px;cursor:pointer}
-.chip span{font:600 11px var(--sans);background:var(--line-2);color:var(--muted);border-radius:5px;padding:1px 6px}
+.idxtools{display:flex;align-items:center;gap:10px}
+.idxtools input{font:13px var(--sans);border:1px solid var(--line);border-radius:8px;padding:6px 10px;width:180px;max-width:100%;color:var(--ink);background:#fff}
+.idxtools input:focus{outline:none;border-color:var(--teal)}
+.idx{padding:4px 20px 12px}
+.letter{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line-2)}
+.letter:last-child{border-bottom:0}
+.letter b{font:800 14px/28px var(--display);color:var(--teal)}
+.letter div{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;font:500 12.5px var(--mono);border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:7px;padding:0 9px;cursor:pointer}
+.chip span{font:600 10.5px var(--sans);background:var(--teal-soft);color:var(--teal-ink);border-radius:5px;padding:1px 6px;margin-right:-3px}
+.idxempty{padding:16px 0;color:var(--muted);font-size:13px}
 .chip:hover{border-color:var(--teal);color:var(--teal-ink)} .chip:hover span{background:var(--teal-soft);color:var(--teal-ink)}
 .chip.big{font-size:13.5px;padding:6px 6px 6px 11px}
 .chip.big span{font-size:12px}
@@ -203,7 +209,9 @@ footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
       </section>
 
       <section class="card">
-        <div class="cardhead"><h3 id="geneHead">All genes</h3><span>A–Z, with number of entries</span></div>
+        <div class="cardhead"><h3 id="geneHead">All genes</h3>
+          <div class="idxtools"><span>Number shown when a gene has more than one entry</span>
+            <input id="gfilter" type="search" placeholder="Filter genes" aria-label="Filter gene list"></div></div>
         <div class="idx" id="genes"></div>
       </section>
     </div>
@@ -431,12 +439,17 @@ function renderStats(){
 }
 function renderGenes(){
   const counts=geneCounts(), names=Object.keys(counts).sort((a,b)=>a.localeCompare(b));
-  const chip=(g,big)=>`<button type="button" class="chip${big?" big":""}" data-q="${esc(g)}">${esc(g)}<span>${counts[g]}</span></button>`;
+  const chip=(g,big)=>`<button type="button" class="chip${big?" big":""}" data-q="${esc(g)}">${esc(g)}${counts[g]>1||big?`<span>${counts[g]}</span>`:""}</button>`;
   $("topGenes").innerHTML=Object.keys(counts).filter(g=>counts[g]>1).sort((a,b)=>counts[b]-counts[a]||a.localeCompare(b)).slice(0,14).map(g=>chip(g,true)).join("");
   $("geneHead").textContent=`All genes (${new Set(names.map(geneKey)).size})`;
-  const groups={}; names.forEach(g=>{const k=g[0].toUpperCase(); (groups[k]=groups[k]||[]).push(g);});
-  $("genes").innerHTML=Object.keys(groups).sort().map(k=>`<div class="letter"><b>${k}</b><div>${groups[k].map(g=>chip(g)).join("")}</div></div>`).join("");
+  const f=($("gfilter").value||"").trim().toUpperCase();
+  const shown=names.filter(g=>!f||g.toUpperCase().includes(f));
+  const groups={}; shown.forEach(g=>{const k=g[0].toUpperCase(); (groups[k]=groups[k]||[]).push(g);});
+  $("genes").innerHTML=shown.length
+    ? Object.keys(groups).sort().map(k=>`<div class="letter"><b>${k}</b><div>${groups[k].map(g=>chip(g)).join("")}</div></div>`).join("")
+    : `<div class="idxempty">No gene matches “${esc(f)}”.</div>`;
 }
+$("gfilter").addEventListener("input",()=>{ if(DATA.length) renderGenes(); });
 
 /* ---------- events ---------- */
 let timer;
