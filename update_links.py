@@ -17,6 +17,7 @@ import io
 import json
 import re
 import sys
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -33,6 +34,39 @@ def norm(s):
     return re.sub(r"\s+", " ", str(s or "")).strip().lower()
 
 
+LITVAR = "https://www.ncbi.nlm.nih.gov/research/litvar2-api/variant"
+
+
+def _get_json(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def litvar_suggest(gene, variant):
+    """PMIDs that LitVar2 links to this gene + variant, or None.
+
+    LitVar2 recognises the different ways a variant is written (c./p./rsID),
+    so it finds papers a plain PubMed text search misses. These are only
+    suggestions: they are not necessarily the paper the analyst used.
+    """
+    gene = re.sub(r"\s+", "", str(gene or "")).upper()
+    v = next((s.strip() for s in str(variant or "").splitlines() if re.match(r"[cp]\.", s.strip(), re.I)), "")
+    if not gene or not v:
+        return None
+    try:
+        hits = _get_json(f"{LITVAR}/autocomplete/?query={urllib.parse.quote(gene + ' ' + v)}")
+        hit = next((h for h in hits if gene in [g.upper() for g in h.get("gene", [])]), None)
+        if not hit:
+            return None
+        pubs = _get_json(f"{LITVAR}/get/{urllib.parse.quote(hit['_id'], safe='')}/publications")
+    except Exception as e:  # network problems shouldn't stop the link update
+        print(f"  LitVar2 lookup failed for {gene} {v}: {e}")
+        return None
+    pmids = [str(p) for p in pubs.get("pmids", [])]
+    return {"n": len(pmids), "p": pmids[:20], "q": f"{gene} {v}"} if pmids else None
+
+
 def main():
     url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=xlsx"
     with urllib.request.urlopen(url, timeout=60) as r:
@@ -42,7 +76,7 @@ def main():
     ws = wb[TAB_NAME]
 
     links = {}
-    omim = src = 0
+    omim = src = suggested = 0
     for row in ws.iter_rows(min_row=2):
         gene, pheno, pmid, variant = (row[i].value if i < len(row) else None for i in range(4))
         if not (gene or pheno or pmid):
@@ -55,6 +89,12 @@ def main():
         if row[2].hyperlink and row[2].hyperlink.target and not re.fullmatch(r"\d+(\.0)?", str(pmid or "").strip()):
             entry["s"] = row[2].hyperlink.target
             src += 1
+        # No source at all in the sheet: ask LitVar2 for papers on this gene + variant
+        if not str(pmid or "").strip() and not entry.get("s"):
+            sug = litvar_suggest(gene, variant)
+            if sug:
+                entry["lv"] = sug
+                suggested += 1
         if entry:
             links["|".join([norm(gene), norm(pheno), norm(variant)])] = entry
 
@@ -83,7 +123,7 @@ def main():
             sys.exit(f"Could not find the {start}/{end} markers ({label}) in variant_lookup.html")
     HTML.write_text(html, encoding="utf-8", newline="\n")
     print(f"Updated {HTML.name}: {omim} OMIM links, {src} DOI/URL source links, "
-          f"{len(pairs)} gene MIM numbers.")
+          f"{len(pairs)} gene MIM numbers, {suggested} LitVar2 paper suggestions for rows without a source.")
 
 
 if __name__ == "__main__":
