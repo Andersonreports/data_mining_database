@@ -112,8 +112,11 @@ tr.hit td:first-child{box-shadow:inset 3px 0 0 var(--ok)}
 .ph .phtext{margin-bottom:6px}
 .ph a.genemim{display:inline-flex;align-items:center;gap:5px;font:500 12.5px var(--mono);color:var(--teal-ink);background:var(--teal-soft);border-radius:6px;padding:3px 8px;text-decoration:none;white-space:nowrap}
 .ph a.genemim:hover{background:#cdeeea}
-.ph .phnote{margin-top:5px;font-size:11.5px;color:var(--warn);display:flex;gap:5px;align-items:baseline}
-.ph .phnote::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn);transform:translateY(-1px)}
+.src a.pmsearch{font:500 12px var(--mono);color:var(--teal-ink);background:var(--teal-soft);border-radius:6px;padding:3px 8px;white-space:normal;max-width:190px;display:inline-flex}
+.src a.pmsearch:hover{background:#cdeeea;text-decoration:none}
+.src .phnote{max-width:190px}
+.ph .phnote,.src .phnote{margin-top:5px;font-size:11.5px;line-height:1.35;color:var(--warn);display:flex;gap:5px;align-items:baseline}
+.ph .phnote::before,.src .phnote::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn);transform:translateY(-1px)}
 .more{border:0;background:none;color:var(--teal);font-size:12px;padding:2px 0;cursor:pointer}
 .rem{min-width:150px;font-size:13px}
 .row a{font:500 12.5px var(--mono);color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:3px 8px;white-space:nowrap;display:inline-flex;gap:4px;align-items:center}
@@ -419,7 +422,14 @@ function srcCell(r){
     const pm=link.match(/pubmed(?:\.ncbi\.nlm\.nih\.gov)?\/(\d+)/);
     return pm ? a(link, pm[1]) : a(link, "DOI");
   }
-  if(!p) return LIMITED ? '<span class="note">DOI or blank — see sheet</span>' : '<span class="dash">—</span>';
+  if(!p){
+    // No source in the sheet: offer a PubMed search for this gene (+ variant) instead
+    const gm=geneMim(r.gene), gene=gm?gm.symbol:geneKey(r.gene);
+    const v=r.variant.split(/\n+/).map(s=>s.trim()).find(isSpecific)||"";
+    const term=[gene,v].filter(Boolean).join(" ");
+    if(!term) return '<span class="dash">—</span>';
+    return `<a class="pmsearch" href="https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(term)}" target="_blank" rel="noopener">PubMed: ${esc(term)} ${ICON.ext}</a><div class="phnote">Source not given in the sheet — searching PubMed</div>`;
+  }
   if(/^\d+$/.test(p)) return a(`https://pubmed.ncbi.nlm.nih.gov/${p}/`, p);
   const m=p.match(/pubmed\/(\d+)/); if(m) return a(`https://pubmed.ncbi.nlm.nih.gov/${m[1]}/`, m[1]);
   const doi=p.replace(/^https?:\/\/(dx\.)?doi\.org\//,"");
