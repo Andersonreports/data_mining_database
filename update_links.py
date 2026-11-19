@@ -5,6 +5,8 @@ hyperlinks that are set on cells in the sheet. This script downloads the
 sheet once as .xlsx, reads the link on each OMIM phenotype cell (column B)
 and on each non-PMID source cell (column C, e.g. DOIs), and writes them
 into variant_lookup.html between the LINKS-START / LINKS-END markers.
+It also embeds OMIM's gene symbol -> gene MIM number list (mim2gene.txt),
+which the page uses for rows that have no OMIM phenotype link in the sheet.
 
 It only READS the Google Sheet. Run it whenever new rows with links have
 been added to the sheet:
@@ -23,6 +25,7 @@ import openpyxl
 SHEET_ID = "13eexUpiAMbHRal9C2SV15DcvhmtDzh3QSVD8vO_nnKc"
 TAB_NAME = "Gene Papers"  # the tab with gid=964100659
 HTML = Path(__file__).with_name("variant_lookup.html")
+MIM2GENE_URL = "https://omim.org/static/omim/data/mim2gene.txt"
 
 
 def norm(s):
@@ -55,14 +58,32 @@ def main():
         if entry:
             links["|".join([norm(gene), norm(pheno), norm(variant)])] = entry
 
+    # Gene symbol -> gene MIM number, from OMIM's public mim2gene.txt. Used by the
+    # page when the sheet has no OMIM phenotype link for a row.
+    req = urllib.request.Request(MIM2GENE_URL, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        text = r.read().decode("utf-8")
+    pairs = []
+    for line in text.splitlines():
+        if line.startswith("#"):
+            continue
+        cols = line.split("\t")
+        if len(cols) >= 4 and "gene" in cols[1] and cols[3].strip():
+            pairs.append(f"{cols[3].strip().upper()}:{cols[0].strip()}")
+    genemim = ",".join(sorted(pairs))
+
     html = HTML.read_text(encoding="utf-8")
-    new, n = re.subn(r"/\*LINKS-START\*/.*?/\*LINKS-END\*/",
-                     lambda m: "/*LINKS-START*/" + json.dumps(links, separators=(",", ":")) + "/*LINKS-END*/",
-                     html, flags=re.S)
-    if n != 1:
-        sys.exit("Could not find the LINKS-START/LINKS-END markers in variant_lookup.html")
-    HTML.write_text(new, encoding="utf-8", newline="\n")
-    print(f"Updated {HTML.name}: {omim} OMIM links, {src} DOI/URL source links.")
+    for start, end, value, label in [
+        ("LINKS-START", "LINKS-END", json.dumps(links, separators=(",", ":")), "links"),
+        ("GENEMIM-START", "GENEMIM-END", json.dumps(genemim), "gene MIM numbers"),
+    ]:
+        html, n = re.subn(rf"/\*{start}\*/.*?/\*{end}\*/",
+                          lambda m: f"/*{start}*/{value}/*{end}*/", html, flags=re.S)
+        if n != 1:
+            sys.exit(f"Could not find the {start}/{end} markers ({label}) in variant_lookup.html")
+    HTML.write_text(html, encoding="utf-8", newline="\n")
+    print(f"Updated {HTML.name}: {omim} OMIM links, {src} DOI/URL source links, "
+          f"{len(pairs)} gene MIM numbers.")
 
 
 if __name__ == "__main__":
