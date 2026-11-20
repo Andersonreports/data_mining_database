@@ -210,7 +210,7 @@ dialog.add::backdrop{background:rgba(7,24,51,.55);backdrop-filter:blur(3px)}
 .add .btn{border-radius:10px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid #d0d5dd;background:#fff;color:var(--ink)}
 .add .btn.primary{border:0;background:linear-gradient(180deg,#ffa53a,var(--orange-2));color:#fff}
 .add .btn:disabled{opacity:.55;cursor:not-allowed}
-.add .hide{display:none}
+.add .hide{display:none!important}
 @media (max-width:560px){.add .ab{grid-template-columns:1fr}}
 </style>
 </head>
@@ -314,8 +314,10 @@ dialog.add::backdrop{background:rgba(7,24,51,.55);backdrop-filter:blur(3px)}
       <label class="f full">OMIM phenotype<small>Leave empty if not known; the page will link the gene's MIM entry</small><input id="aPheno" type="text" autocomplete="off" placeholder="e.g. Factor XIIIA deficiency"></label>
       <label class="f full">Remarks<textarea id="aRem" rows="2" placeholder="Optional"></textarea></label>
       <div class="check full" id="aCheck" aria-live="polite"></div>
-      <label class="f full">Team passcode *<input id="aPass" type="password" autocomplete="current-password"></label>
-      <label class="remember full"><input type="checkbox" id="aRemember"> Remember the passcode on this device</label>
+      <div class="full hide" id="aPassWrap" style="display:flex;flex-direction:column;gap:8px">
+        <label class="f">Team passcode *<input id="aPass" type="password" autocomplete="current-password"></label>
+        <label class="remember"><input type="checkbox" id="aRemember"> Remember the passcode on this device</label>
+      </div>
       <div class="msg full hide" id="aResult" role="status"></div>
     </div>
     <div class="af"><button class="btn" type="button" id="addCancel">Cancel</button><button class="btn primary" type="submit" id="addSubmit">Add to sheet</button></div>
@@ -630,7 +632,7 @@ load();
 <script>
 /* ---------- add entry ---------- */
 // Web app URL of the Apps Script bridge (apps_script/Code.gs). Empty = adding switched off.
-const ADD_URL = "";
+const ADD_URL = "https://script.google.com/macros/s/AKfycbwtQ7HWhBNHC1u7TAvBAojWf8HL55apWhNN41o5NPctrHgNdjebFPD_-3Cv99gVJvRcdw/exec";
 (function(){
   const dlg=$("addDlg"), form=$("addForm"), PASS_KEY="aid-passcode";
   const store={get(){try{return localStorage.getItem(PASS_KEY)||"";}catch(e){return "";}},
@@ -642,6 +644,7 @@ const ADD_URL = "";
   function open(){
     form.reset(); $("aResult").className="msg full hide"; $("aCheck").innerHTML="";
     const saved=store.get(); if(saved){ $("aPass").value=saved; $("aRemember").checked=true; }
+    $("aPassWrap").classList.toggle("hide",!saved);
     for(const t of $("q").value.trim().split(/\s+/)){   // prefill from the current search
       if(!t) continue;
       if(isVariant(t) && !$("aVar").value) $("aVar").value=t;
@@ -693,15 +696,19 @@ const ADD_URL = "";
     if(!gene){ result("no","Enter a gene symbol."); return $("aGene").focus(); }
     if(isVar && !variant){ result("no","Enter the variant, or switch to Gene paper."); return $("aVar").focus(); }
     if(!pmid){ result("no","Enter a PMID or DOI."); return $("aPmid").focus(); }
-    if(!pass){ result("no","Enter the team passcode."); return $("aPass").focus(); }
+    const passShown=!$("aPassWrap").classList.contains("hide");
+    if(passShown && !pass){ result("no","Enter the team passcode."); return $("aPass").focus(); }
     if(blocked || !ADD_URL) return;
     const btn=$("addSubmit"); btn.disabled=true; btn.textContent="Adding…";
     try{
       // Sent as text/plain so the browser doesn't need a CORS preflight to Apps Script.
       const res=await fetch(ADD_URL,{method:"POST",body:JSON.stringify({gene,variant,pmid,pheno:$("aPheno").value.trim(),remarks:$("aRem").value.trim(),passcode:pass})});
       const j=await res.json();
-      if(!j.ok) throw new Error(j.error||"The sheet refused the entry.");
-      store.set($("aRemember").checked?pass:"");
+      if(!j.ok){
+        if(j.needPass){ $("aPassWrap").classList.remove("hide"); store.set(""); setTimeout(()=>$("aPass").focus(),0); }
+        throw new Error(j.error||"The sheet refused the entry.");
+      }
+      if(passShown) store.set($("aRemember").checked?pass:"");
       result("ok",`Added to the sheet at row ${j.row}. Refreshing…`);
       setTimeout(()=>{ close(); $("q").value=(gene+" "+(isVar?variant:"")).trim(); load(); },1200);
     }catch(e){

@@ -1,14 +1,18 @@
 /**
+ * @OnlyCurrentDoc  Limits the script's permission to this one spreadsheet file.
+ */
+
+/**
  * Anderson Internal Database: "Add entry" bridge.
  *
  * Receives a new entry from the lookup page (variant_lookup.html) and writes it
  * as a new row at the bottom of the curation tab. Only requests carrying the
- * team passcode are accepted.
+ * team passcode are accepted, if a passcode is set (optional).
  *
  * Setup (once):
  *   1. Open the Google Sheet → Extensions → Apps Script. Paste this file in as Code.gs.
- *   2. Project Settings (gear) → Script properties → Add property
- *        PASSCODE = <the team passcode>
+ *   2. Optional: Project Settings (gear) → Script properties → Add property
+ *        PASSCODE = <the team passcode>   (without it, anyone with the page can add rows)
  *   3. Deploy → New deployment → type "Web app"
  *        Execute as: Me      Who has access: Anyone
  *      Copy the Web app URL (ends in /exec) and put it in ADD_URL in variant_lookup.html.
@@ -20,14 +24,23 @@
 
 const SHEET_GID = 964100659;      // the curation tab the page reads
 const COLS = 5;                   // A Gene | B OMIM Phenotype | C PMID | D Variant | E Remarks
+const MAX_PER_HOUR = 60;          // safety cap on new rows per hour
 
 function doPost(e) {
   try {
     const d = JSON.parse((e && e.postData && e.postData.contents) || "{}");
 
+    // Passcode is optional: only checked when a PASSCODE script property exists.
     const pass = PropertiesService.getScriptProperties().getProperty("PASSCODE");
-    if (!pass) return reply({ ok: false, error: "The passcode has not been set up on the script yet." });
-    if (String(d.passcode || "") !== pass) return reply({ ok: false, error: "Wrong passcode." });
+    if (pass && String(d.passcode || "") !== pass) {
+      return reply({ ok: false, needPass: true, error: d.passcode ? "Wrong passcode." : "This sheet needs the team passcode." });
+    }
+
+    // Safety cap so a stray bot can't flood the sheet.
+    const cache = CacheService.getScriptCache();
+    const hourKey = "adds-" + Math.floor(Date.now() / 3600000);
+    const used = Number(cache.get(hourKey) || 0);
+    if (used >= MAX_PER_HOUR) return reply({ ok: false, error: "Too many entries this hour. Please try again later." });
 
     const gene = clean(d.gene).toUpperCase().replace(/\s+/g, "");
     const source = clean(d.pmid);
@@ -52,6 +65,7 @@ function doPost(e) {
       if (r > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), 1);
 
       sh.getRange(r, 1, 1, COLS).setValues([row]);
+      cache.put(hourKey, String(used + 1), 3700);
       return reply({ ok: true, row: r });
     } finally {
       lock.releaseLock();
