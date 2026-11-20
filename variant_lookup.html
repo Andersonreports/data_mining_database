@@ -67,12 +67,11 @@ button{font:inherit}
 main{padding:0 24px 64px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:-58px;position:relative;z-index:1}
 .stat{display:flex;align-items:center;gap:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:0 2px 4px rgba(15,28,46,.04),0 10px 28px rgba(15,28,46,.08)}
-.stat .si{flex:none;width:64px;height:64px;border-radius:50%;display:grid;place-items:center}
-.stat .si svg{width:32px;height:32px}
-.s1 .si{background:#e1edff;color:#1d63e0} .s1{background:linear-gradient(135deg,#fff 60%,#f1f6ff)}
-.s2 .si{background:#ebe7ff;color:#5b3fd9} .s2{background:linear-gradient(135deg,#fff 60%,#f5f3ff)}
-.s3 .si{background:#e2f6e9;color:#16934a} .s3{background:linear-gradient(135deg,#fff 60%,#f0faf3)}
-.s4 .si{background:#ffeedb;color:#e8760a} .s4{background:linear-gradient(135deg,#fff 60%,#fff6ec)}
+.stat .si{flex:none;width:64px;height:64px;border-radius:50%;display:block}
+.s1{background:linear-gradient(135deg,#fff 60%,#f1f6ff)}
+.s2{background:linear-gradient(135deg,#fff 60%,#f5f3ff)}
+.s3{background:linear-gradient(135deg,#fff 60%,#f0faf3)}
+.s4{background:linear-gradient(135deg,#fff 60%,#fff6ec)}
 .stat .n{font:800 30px/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .stat .l{font-size:14px;color:var(--muted);margin-top:6px}
 .stack{display:flex;flex-direction:column;gap:22px;margin-top:22px}
@@ -163,7 +162,7 @@ footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
   .searchwrap label{font-size:23px}
   .stats{gap:12px}
   .stat{padding:14px;gap:12px}
-  .stat .si{width:44px;height:44px} .stat .si svg{width:22px;height:22px}
+  .stat .si{width:44px;height:44px}
   .stat .n{font-size:24px}
   .band{padding:28px 16px 76px}
   main{padding:0 16px 64px}
@@ -218,10 +217,10 @@ footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
 <main>
   <div class="inner">
     <div class="stats">
-      <div class="stat s1"><div class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 3c0 6 10 6 10 12s-10 6-10 6"/><path d="M17 3c0 6-10 6-10 12s10 6 10 6"/><path d="M8.5 7h7M8.5 17h7"/></svg></div><div><div class="n" id="sRows">–</div><div class="l">Entries in sheet</div></div></div>
-      <div class="stat s2"><div class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="6" cy="6" r="2.6"/><circle cx="18" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><circle cx="18" cy="18" r="2.6"/><circle cx="12" cy="12" r="2.2"/><path d="m8 8 2.4 2.4M16 8l-2.4 2.4M8 16l2.4-2.4M16 16l-2.4-2.4"/></svg></div><div><div class="n" id="sGenes">–</div><div class="l">Unique genes</div></div></div>
-      <div class="stat s3"><div class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></div><div><div class="n" id="sVars">–</div><div class="l">Specific variants</div></div></div>
-      <div class="stat s4"><div class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 13l2 2 4-4"/></svg></div><div><div class="n" id="sPmids">–</div><div class="l">Papers cited</div></div></div>
+      <div class="stat s1"><img class="si" src="assets/stat-entries.png" alt="" width="64" height="64"><div><div class="n" id="sRows">–</div><div class="l">Entries in sheet</div></div></div>
+      <div class="stat s2"><img class="si" src="assets/stat-genes.png" alt="" width="64" height="64"><div><div class="n" id="sGenes">–</div><div class="l">Unique genes</div></div></div>
+      <div class="stat s3"><img class="si" src="assets/stat-variants.png" alt="" width="64" height="64"><div><div class="n" id="sVars">–</div><div class="l">Specific variants</div></div></div>
+      <div class="stat s4"><img class="si" src="assets/stat-papers.png" alt="" width="64" height="64"><div><div class="n" id="sPmids">–</div><div class="l">Papers cited</div></div></div>
     </div>
 
     <div class="stack">
