@@ -14,7 +14,8 @@
   --navy:#0c2340; --navy-2:#143a63;
   --bg:#f3f6fa; --surface:#ffffff; --ink:#0f1c2e; --muted:#5f6f86; --faint:#8a98ab;
   --line:#e2e8f0; --line-2:#eef2f7;
-  --teal:#0a7c78; --teal-soft:#e3f4f2; --teal-ink:#06615e;
+  --teal:#1d5fd6; --teal-soft:#e8f0fe; --teal-ink:#1849a9;
+  --orange:#f7931e; --orange-2:#f57c00;
   --ok:#15803d; --ok-soft:#e8f6ed; --ok-line:#bfe5cc;
   --warn:#b45309; --warn-soft:#fff5e6; --warn-line:#f6d7a6;
   --no:#b42318; --no-soft:#fdeeec; --no-line:#f5c6c0;
@@ -32,39 +33,48 @@ button{font:inherit}
 :focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 
 /* ---- header band ---- */
-.band{background:radial-gradient(1200px 400px at 85% -40%,#1f5a8f 0%,transparent 60%),linear-gradient(180deg,var(--navy),var(--navy-2));color:#fff;padding:28px 24px 84px}
+.band{position:relative;overflow:hidden;background:linear-gradient(90deg,rgba(6,20,48,.55) 0%,rgba(6,20,48,.15) 55%,rgba(6,20,48,0) 100%),url("assets/dna-hero.jpg") center right/cover no-repeat,#071833;color:#fff;padding:26px 24px 96px}
+.band>.inner{position:relative;z-index:1}
 .inner{max-width:1640px;margin:0 auto}
 .top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:12px}
-.logo{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center}
-.brand h1{font:800 22px/1.1 var(--display);margin:0;letter-spacing:-.01em}
-.brand p{margin:2px 0 0;font-size:13px;color:#b9c8dc}
-.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.live{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:#cfdbea;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);padding:6px 11px;border-radius:999px}
+.logo{display:grid;place-items:center}
+.brand h1{font:700 28px/1.1 var(--display);margin:0;letter-spacing:-.01em}
+.brand p{margin:4px 0 0;font-size:14px;color:#c9d6ea}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.live{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#e4ecf7;background:rgba(7,24,51,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.14);padding:9px 14px;border-radius:999px}
 .pulse{width:8px;height:8px;border-radius:50%;background:#94a3b8}
 .pulse.on{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.25)}
 .pulse.err{background:#f87171}
-.ghost{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.22);background:transparent;color:#fff;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none}
-.ghost:hover{background:rgba(255,255,255,.1)}
+.ghost{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);background:rgba(7,24,51,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none}
+.ghost:hover{background:rgba(255,255,255,.18)}
 
-.searchwrap{margin-top:34px;max-width:780px}
-.searchwrap label{display:block;font:700 26px/1.25 var(--display);letter-spacing:-.015em;margin-bottom:14px;text-wrap:balance}
-.searchbox{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:6px 6px 6px 16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-.searchbox svg{flex:none;color:var(--faint)}
-.searchbox input{flex:1;min-width:0;border:0;outline:0;font:500 17px var(--mono);color:var(--ink);padding:12px 0;background:transparent}
-.searchbox input::placeholder{color:#a3afc0;font-weight:400}
-.clear{border:0;background:var(--line-2);color:var(--muted);border-radius:10px;padding:10px 14px;cursor:pointer;font-size:13px;font-weight:500}
-.clear:hover{background:var(--line)}
-.examples{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;font-size:13px;color:#b9c8dc}
-.ex{font:12.5px var(--mono);color:#e6eef8;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:7px;padding:4px 9px;cursor:pointer}
+.searchwrap{margin:22px auto 0;max-width:1020px}
+.searchwrap label{display:block;font:700 34px/1.25 var(--display);letter-spacing:-.015em;margin-bottom:16px;text-wrap:balance}
+.searchwrap label em{font-style:normal;color:var(--orange)}
+.searchbox{display:flex;align-items:center;gap:12px;background:#fff;border-radius:16px;padding:7px 7px 7px 20px;box-shadow:0 14px 36px rgba(0,0,0,.3)}
+.searchbox svg{flex:none;color:#5f6f86}
+.searchbox input{flex:1;min-width:0;border:0;outline:0;font:500 17px var(--sans);color:var(--ink);padding:12px 0;background:transparent}
+.searchbox input::placeholder{color:#8a98ab;font-weight:400}
+.clear{border:0;background:linear-gradient(180deg,#ffa53a,var(--orange-2));color:#fff;border-radius:11px;padding:12px 22px;cursor:pointer;font-size:15px;font-weight:600;box-shadow:0 4px 12px rgba(245,124,0,.35)}
+.clear:hover{background:var(--orange-2)}
+.examples{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px;font-size:14px;color:#c9d6ea}
+.examples>span{margin-right:6px}
+.ex{font:500 13px var(--mono);color:#eef4fb;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:6px 14px;cursor:pointer}
 .ex:hover{background:rgba(255,255,255,.18)}
 
 /* ---- main ---- */
 main{padding:0 24px 64px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:-52px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
-.stat .n{font:800 26px/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.stat .l{font-size:12.5px;color:var(--muted);margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:-58px;position:relative;z-index:1}
+.stat{display:flex;align-items:center;gap:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:0 2px 4px rgba(15,28,46,.04),0 10px 28px rgba(15,28,46,.08)}
+.stat .si{flex:none;width:64px;height:64px;border-radius:50%;display:grid;place-items:center}
+.stat .si svg{width:32px;height:32px}
+.s1 .si{background:#e1edff;color:#1d63e0} .s1{background:linear-gradient(135deg,#fff 60%,#f1f6ff)}
+.s2 .si{background:#ebe7ff;color:#5b3fd9} .s2{background:linear-gradient(135deg,#fff 60%,#f5f3ff)}
+.s3 .si{background:#e2f6e9;color:#16934a} .s3{background:linear-gradient(135deg,#fff 60%,#f0faf3)}
+.s4 .si{background:#ffeedb;color:#e8760a} .s4{background:linear-gradient(135deg,#fff 60%,#fff6ec)}
+.stat .n{font:800 30px/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .l{font-size:14px;color:var(--muted);margin-top:6px}
 .stack{display:flex;flex-direction:column;gap:22px;margin-top:22px}
 
 .verdict{display:flex;gap:16px;align-items:flex-start;border-radius:14px;padding:18px 20px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow)}
@@ -78,8 +88,14 @@ main{padding:0 24px 64px}
 
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);min-width:0}
 .cardhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--line)}
-.cardhead h3{margin:0;font:700 15px var(--display)}
+.cardhead h3{margin:0;font:700 17px var(--display)}
 .cardhead span{font-size:13px;color:var(--muted)}
+.cardhead{align-items:center;padding:18px 24px}
+.ttl{display:flex;align-items:center;gap:12px}
+.hic{width:24px;height:24px;color:var(--teal);flex:none}
+.hic.star{fill:var(--orange);width:26px;height:26px}
+.hint{display:inline-flex;align-items:center;gap:8px}
+.hint svg{width:18px;height:18px;color:var(--teal)}
 .tablebox{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:14px}
 th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);font-weight:600;padding:11px 16px;background:#fafbfd;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -105,15 +121,15 @@ tr.hit td:first-child{box-shadow:inset 3px 0 0 var(--ok)}
 .ph div{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ph div.open{display:block}
 .ph a.omim{color:var(--teal-ink);text-decoration:none;display:block}
-.ph a.omim div{text-decoration:underline;text-decoration-color:rgba(10,124,120,.35);text-underline-offset:2px}
+.ph a.omim div{text-decoration:underline;text-decoration-color:rgba(29,95,214,.35);text-underline-offset:2px}
 .ph a.omim:hover div{text-decoration-color:var(--teal);color:var(--teal)}
 .ph a.omimsearch{font-size:12.5px;text-decoration:none;display:inline-flex;gap:4px;align-items:center}
 .ph a.omimsearch:hover{text-decoration:underline}
 .ph .phtext{margin-bottom:6px}
 .ph a.genemim{display:inline-flex;align-items:center;gap:5px;font:500 12.5px var(--mono);color:var(--teal-ink);background:var(--teal-soft);border-radius:6px;padding:3px 8px;text-decoration:none;white-space:nowrap}
-.ph a.genemim:hover{background:#cdeeea}
+.ph a.genemim:hover{background:#d6e4fd}
 .src a.pmsearch{font:500 12px var(--mono);color:var(--teal-ink);background:var(--teal-soft);border-radius:6px;padding:3px 8px;white-space:normal;max-width:190px;display:inline-flex}
-.src a.pmsearch:hover{background:#cdeeea;text-decoration:none}
+.src a.pmsearch:hover{background:#d6e4fd;text-decoration:none}
 .src .phnote{max-width:190px}
 .ph .phnote,.src .phnote{margin-top:5px;font-size:11.5px;line-height:1.35;color:var(--warn);display:flex;gap:5px;align-items:baseline}
 .ph .phnote::before,.src .phnote::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn);transform:translateY(-1px)}
@@ -122,27 +138,33 @@ tr.hit td:first-child{box-shadow:inset 3px 0 0 var(--ok)}
 .row a{font:500 12.5px var(--mono);color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:3px 8px;white-space:nowrap;display:inline-flex;gap:4px;align-items:center}
 .row a:hover{border-color:var(--teal);color:var(--teal)}
 
-.top-genes{display:flex;flex-wrap:wrap;gap:8px;padding:16px 20px}
-.idxtools{display:flex;align-items:center;gap:10px}
-.idxtools input{font:13px var(--sans);border:1px solid var(--line);border-radius:8px;padding:6px 10px;width:180px;max-width:100%;color:var(--ink);background:#fff}
-.idxtools input:focus{outline:none;border-color:var(--teal)}
-.idx{padding:4px 20px 12px}
-.letter{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line-2)}
+.top-genes{display:flex;flex-wrap:wrap;gap:10px;padding:18px 24px}
+.idxtools{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.filt{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:#fff;width:220px;max-width:100%}
+.filt svg{width:18px;height:18px;color:var(--muted);flex:none}
+.filt input{font:14px var(--sans);border:0;outline:none;padding:9px 0;width:100%;min-width:0;color:var(--ink);background:transparent}
+.filt:focus-within{border-color:var(--teal)}
+.idx{padding:4px 24px 14px}
+.letter{display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:start;padding:9px 0;border-bottom:1px solid var(--line-2)}
 .letter:last-child{border-bottom:0}
-.letter b{font:800 14px/28px var(--display);color:var(--teal)}
-.letter div{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
-.chip{display:inline-flex;align-items:center;gap:6px;height:28px;font:500 12.5px var(--mono);border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:7px;padding:0 9px;cursor:pointer}
-.chip span{font:600 10.5px var(--sans);background:var(--teal-soft);color:var(--teal-ink);border-radius:5px;padding:1px 6px;margin-right:-3px}
+.letter b{font:800 16px/32px var(--display);color:var(--teal-ink)}
+.letter div{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:8px;height:32px;font:600 12.5px var(--sans);border:1px solid #dde3ec;background:#fff;color:var(--ink);border-radius:999px;padding:0 6px 0 13px;cursor:pointer;box-shadow:0 1px 2px rgba(15,28,46,.05)}
+.chip span{font:600 11px var(--sans);background:var(--teal-soft);color:var(--teal-ink);border-radius:999px;min-width:20px;height:20px;display:inline-grid;place-items:center;padding:0 6px}
 .idxempty{padding:16px 0;color:var(--muted);font-size:13px}
-.chip:hover{border-color:var(--teal);color:var(--teal-ink)} .chip:hover span{background:var(--teal-soft);color:var(--teal-ink)}
-.chip.big{font-size:13.5px;padding:6px 6px 6px 11px}
-.chip.big span{font-size:12px}
+.chip:hover{border-color:var(--teal);color:var(--teal-ink)} .chip:hover span{background:var(--teal);color:#fff}
+.chip.big{font-size:15px;height:38px;padding:0 8px 0 15px}
+.chip.big span{font-size:12px;min-width:24px;height:24px}
 .errbox{background:var(--no-soft);border:1px solid var(--no-line);color:#7f1d1d;border-radius:14px;padding:16px 20px}
 footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
 
 @media (max-width:760px){
   .stats{grid-template-columns:repeat(2,1fr)}
-  .searchwrap label{font-size:21px}
+  .searchwrap label{font-size:23px}
+  .stats{gap:12px}
+  .stat{padding:14px;gap:12px}
+  .stat .si{width:44px;height:44px} .stat .si svg{width:22px;height:22px}
+  .stat .n{font-size:24px}
   .band{padding:28px 16px 76px}
   main{padding:0 16px 64px}
 }
@@ -159,10 +181,11 @@ footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
     <div class="top">
       <div class="brand">
         <div class="logo" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7fe0d6" stroke-width="2" stroke-linecap="round"><path d="M7 3c0 6 10 6 10 12s-10 6-10 6"/><path d="M17 3c0 6-10 6-10 12s10 6 10 6" stroke="#ffffff" opacity=".85"/><path d="M8.5 7h7M8.5 17h7M10 12h4"/></svg>
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M7 2.5c0 6.5 10 6.5 10 13S7 22 7 22" stroke="#f7931e" stroke-width="2.4"/><path d="M17 2.5c0 6.5-10 6.5-10 13" stroke="#ffb347" stroke-width="2.4"/><path d="M9 6.5h6M9.5 18.5h5" stroke="#ffd29a" stroke-width="1.6"/></svg>
         </div>
         <div>
           <h1>Variant Lookup</h1>
+          <p>Explore, analyze and interpret genetic variants</p>
         </div>
       </div>
       <div class="actions">
@@ -175,13 +198,13 @@ footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
     </div>
 
     <div class="searchwrap">
-      <label for="q">Is this gene or variant already curated?</label>
+      <label for="q">Is this <em>gene</em> or <em>variant</em> already curated?</label>
       <div class="searchbox">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Gene, variant, gene + variant, or PMID">
         <button class="clear" id="clear" type="button">Clear</button>
       </div>
-      <div class="examples">Try
+      <div class="examples"><span>Try:</span>
         <button class="ex" type="button" data-q="VWF c.3946G>A">VWF c.3946G&gt;A</button>
         <button class="ex" type="button" data-q="F8 c.1018G>T">F8 c.1018G&gt;T</button>
         <button class="ex" type="button" data-q="THPO">THPO</button>
@@ -195,10 +218,10 @@ footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
 <main>
   <div class="inner">
     <div class="stats">
-      <div class="stat"><div class="n" id="sRows">–</div><div class="l">Entries in sheet</div></div>
-      <div class="stat"><div class="n" id="sGenes">–</div><div class="l">Unique genes</div></div>
-      <div class="stat"><div class="n" id="sVars">–</div><div class="l">Specific variants</div></div>
-      <div class="stat"><div class="n" id="sPmids">–</div><div class="l">Papers cited</div></div>
+      <div class="stat s1"><div class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 3c0 6 10 6 10 12s-10 6-10 6"/><path d="M17 3c0 6-10 6-10 12s10 6 10 6"/><path d="M8.5 7h7M8.5 17h7"/></svg></div><div><div class="n" id="sRows">–</div><div class="l">Entries in sheet</div></div></div>
+      <div class="stat s2"><div class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="6" cy="6" r="2.6"/><circle cx="18" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><circle cx="18" cy="18" r="2.6"/><circle cx="12" cy="12" r="2.2"/><path d="m8 8 2.4 2.4M16 8l-2.4 2.4M8 16l2.4-2.4M16 16l-2.4-2.4"/></svg></div><div><div class="n" id="sGenes">–</div><div class="l">Unique genes</div></div></div>
+      <div class="stat s3"><div class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></div><div><div class="n" id="sVars">–</div><div class="l">Specific variants</div></div></div>
+      <div class="stat s4"><div class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 13l2 2 4-4"/></svg></div><div><div class="n" id="sPmids">–</div><div class="l">Papers cited</div></div></div>
     </div>
 
     <div class="stack">
@@ -217,14 +240,15 @@ footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
       </section>
 
       <section class="card" id="frequent">
-        <div class="cardhead"><h3>Most frequently curated genes</h3><span>Click a gene to see its entries</span></div>
+        <div class="cardhead"><div class="ttl"><svg class="hic star" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.8 2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z"/></svg><h3>Most frequently curated genes</h3></div>
+          <span class="hint"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 20V12M10 20V6M15 20v-9M20 20V9"/></svg>Click a gene to see its entries</span></div>
         <div class="top-genes" id="topGenes"><span class="dash">Loading…</span></div>
       </section>
 
       <section class="card">
-        <div class="cardhead"><h3 id="geneHead">All genes</h3>
-          <div class="idxtools"><span>Number shown when a gene has more than one entry</span>
-            <input id="gfilter" type="search" placeholder="Filter genes" aria-label="Filter gene list"></div></div>
+        <div class="cardhead"><div class="ttl"><svg class="hic" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg><h3 id="geneHead">All genes</h3></div>
+          <div class="idxtools"><span>Number = entries for that gene</span>
+            <label class="filt"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg><input id="gfilter" type="search" placeholder="Filter genes" aria-label="Filter gene list"></label></div></div>
         <div class="idx" id="genes"></div>
       </section>
     </div>
@@ -509,7 +533,7 @@ function renderStats(){
 }
 function renderGenes(){
   const counts=geneCounts(), names=Object.keys(counts).sort((a,b)=>a.localeCompare(b));
-  const chip=(g,big)=>`<button type="button" class="chip${big?" big":""}" data-q="${esc(g)}">${esc(g)}${counts[g]>1||big?`<span>${counts[g]}</span>`:""}</button>`;
+  const chip=(g,big)=>`<button type="button" class="chip${big?" big":""}" data-q="${esc(g)}">${esc(g)}<span>${counts[g]}</span></button>`;
   $("topGenes").innerHTML=Object.keys(counts).filter(g=>counts[g]>1).sort((a,b)=>counts[b]-counts[a]||a.localeCompare(b)).slice(0,14).map(g=>chip(g,true)).join("");
   $("geneHead").textContent=`All genes (${new Set(names.map(geneKey)).size})`;
   const f=($("gfilter").value||"").trim().toUpperCase();
