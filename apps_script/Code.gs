@@ -25,6 +25,7 @@
 const SHEET_GID = 964100659;      // the curation tab the page reads
 const COLS = 5;                   // A Gene | B OMIM Phenotype | C PMID | D Variant | E Remarks
 const MAX_PER_HOUR = 60;          // safety cap on new rows per hour
+const WEB_FILL = "#FDEBD3";       // light orange fill marking rows added from the page
 
 function doPost(e) {
   try {
@@ -64,7 +65,11 @@ function doPost(e) {
       const r = last + 1;
       if (r > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), 1);
 
-      sh.getRange(r, 1, 1, COLS).setValues([row]);
+      // Mark rows that came from the page: light orange fill + a note on the gene cell.
+      // Neither changes the cell values, so the lookup page reads the row as usual.
+      sh.getRange(r, 1, 1, COLS).setValues([row]).setBackground(WEB_FILL);
+      sh.getRange(r, 1).setNote("Added via Anderson Internal Database\n" +
+        Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd MMM yyyy, HH:mm"));
       cache.put(hourKey, String(used + 1), 3700);
       return reply({ ok: true, row: r });
     } finally {
