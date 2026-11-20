@@ -40,8 +40,8 @@ button{font:inherit}
 .brand{display:flex;align-items:center;gap:12px}
 .logo{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;background:rgba(7,24,51,.55);border:1px solid rgba(255,179,71,.35);box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .brand h1{font:700 28px/1.1 var(--display);margin:0;letter-spacing:-.01em}
-.shine{background:linear-gradient(100deg,#fff 0%,#fff 38%,#ffc46b 45%,#f7931e 50%,#ffc46b 55%,#fff 62%,#fff 100%);background-size:250% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 14s ease-in-out infinite}
-@keyframes shine{0%{background-position:100% 0}75%,100%{background-position:0% 0}}
+.shine{background:linear-gradient(100deg,#fff 0%,#fff 38%,#ffc46b 45%,#f7931e 50%,#ffc46b 55%,#fff 62%,#fff 100%);background-size:250% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 11s ease-in-out infinite}
+@keyframes shine{0%{background-position:100% 0}70%,100%{background-position:0% 0}}
 @media (prefers-reduced-motion:reduce){.shine{animation:none}}
 .brand p{margin:4px 0 0;font-size:14px;color:#c9d6ea}
 .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -174,6 +174,44 @@ footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
   .verdict{animation:rise .18s ease-out}
   @keyframes rise{from{transform:translateY(4px);opacity:.6}to{transform:none;opacity:1}}
 }
+
+/* ---- add entry ---- */
+.addbtn{display:inline-flex;align-items:center;gap:7px;border:0;background:linear-gradient(180deg,#ffa53a,var(--orange-2));color:#fff;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(245,124,0,.35)}
+.addbtn:hover{background:var(--orange-2)}
+dialog.add{border:0;padding:0;border-radius:18px;width:min(640px,calc(100vw - 32px));max-height:calc(100vh - 32px);box-shadow:0 24px 64px rgba(7,24,51,.35);color:var(--ink)}
+dialog.add::backdrop{background:rgba(7,24,51,.55);backdrop-filter:blur(3px)}
+.add form{display:flex;flex-direction:column}
+.add .ah{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--line)}
+.add .ah h2{margin:0;font:700 20px var(--display)}
+.add .x{border:0;background:var(--line-2);width:36px;height:36px;border-radius:50%;cursor:pointer;color:var(--muted);font-size:18px;line-height:1}
+.add .ab{padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;overflow:auto}
+.add .full{grid-column:1/-1}
+.add .f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#344054}
+.add .f small{font-weight:400;color:var(--muted)}
+.add input[type=text],.add input[type=password],.add textarea{font:15px var(--sans);border:1px solid #d0d5dd;border-radius:10px;padding:10px 12px;color:var(--ink);background:#fff;width:100%}
+.add input.mono{font-family:var(--mono)}
+.add textarea{resize:vertical;min-height:64px}
+.add input:focus,.add textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+.add .seg{display:flex;border:1px solid #d0d5dd;border-radius:10px;overflow:hidden}
+.add .seg label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;font-size:14px;font-weight:500;cursor:pointer;color:#344054;position:relative}
+.add .seg label+label{border-left:1px solid #d0d5dd}
+.add .seg input{position:absolute;opacity:0;pointer-events:none}
+.add .seg label.on{background:var(--teal-soft);color:var(--teal-ink);font-weight:600}
+.add .seg label:focus-within{outline:2px solid var(--teal);outline-offset:-2px}
+.add .check{display:flex;flex-direction:column;gap:6px}
+.add .check:empty{display:none}
+.add .msg{display:block;font-size:13px;font-weight:400;border-radius:10px;padding:10px 12px}
+.add .msg.no{background:var(--no-soft);color:#7f1d1d;border:1px solid var(--no-line)}
+.add .msg.warn{background:var(--warn-soft);color:#7c2d12;border:1px solid var(--warn-line)}
+.add .msg.info{background:var(--teal-soft);color:var(--teal-ink)}
+.add .msg.ok{background:var(--ok-soft);color:#14532d;border:1px solid var(--ok-line)}
+.add .remember{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:400;color:var(--muted);margin-top:2px}
+.add .af{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid var(--line);background:#fafbfd}
+.add .btn{border-radius:10px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid #d0d5dd;background:#fff;color:var(--ink)}
+.add .btn.primary{border:0;background:linear-gradient(180deg,#ffa53a,var(--orange-2));color:#fff}
+.add .btn:disabled{opacity:.55;cursor:not-allowed}
+.add .hide{display:none}
+@media (max-width:560px){.add .ab{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -194,6 +232,7 @@ footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
         <span class="live"><span class="pulse" id="dot"></span><span id="statusText">Connecting to sheet…</span></span>
         <button class="ghost" id="refresh" type="button">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg>Reload</button>
+        <button class="addbtn" id="addOpen" type="button"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add entry</button>
         <a class="ghost" id="openSheet" target="_blank" rel="noopener">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>Open sheet</a>
       </div>
@@ -257,6 +296,32 @@ footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
     <footer>Reads the Google Sheet each time the page opens. Add new entries in the sheet itself.</footer>
   </div>
 </main>
+
+<dialog class="add" id="addDlg" aria-labelledby="addTitle">
+  <form id="addForm" novalidate>
+    <div class="ah"><h2 id="addTitle">Add an entry</h2><button class="x" type="button" id="addClose" aria-label="Close">&times;</button></div>
+    <div class="ab">
+      <div id="addSetup" class="msg warn full hide">Adding from the page isn't switched on yet. The Apps Script bridge needs to be deployed and its URL added to this page (see apps_script/Code.gs).</div>
+      <label class="f">Gene symbol *<input id="aGene" type="text" class="mono" autocomplete="off" spellcheck="false" placeholder="e.g. F13A1"></label>
+      <div class="f">Entry type
+        <div class="seg" role="radiogroup" aria-label="Entry type">
+          <label class="on"><input type="radio" name="aType" value="variant" checked>Specific variant</label>
+          <label><input type="radio" name="aType" value="gene">Gene paper</label>
+        </div>
+      </div>
+      <label class="f" id="aVarWrap">Variant *<small>HGVS, e.g. c.1226G&gt;A or p.Arg409His</small><input id="aVar" type="text" class="mono" autocomplete="off" spellcheck="false" placeholder="c.1226G>A"></label>
+      <label class="f">PMID or DOI *<small>Number only for PubMed, or the full DOI link</small><input id="aPmid" type="text" class="mono" autocomplete="off" spellcheck="false" placeholder="37006978"></label>
+      <label class="f full">OMIM phenotype<small>Leave empty if not known; the page will link the gene's MIM entry</small><input id="aPheno" type="text" autocomplete="off" placeholder="e.g. Factor XIIIA deficiency"></label>
+      <label class="f full">Remarks<textarea id="aRem" rows="2" placeholder="Optional"></textarea></label>
+      <div class="check full" id="aCheck" aria-live="polite"></div>
+      <label class="f full">Team passcode *<input id="aPass" type="password" autocomplete="current-password"></label>
+      <label class="remember full"><input type="checkbox" id="aRemember"> Remember the passcode on this device</label>
+      <div class="msg full hide" id="aResult" role="status"></div>
+    </div>
+    <div class="af"><button class="btn" type="button" id="addCancel">Cancel</button><button class="btn primary" type="submit" id="addSubmit">Add to sheet</button></div>
+  </form>
+</dialog>
+
 
 <script>
 const SHEET_ID = "13eexUpiAMbHRal9C2SV15DcvhmtDzh3QSVD8vO_nnKc";
@@ -560,6 +625,96 @@ document.addEventListener("click",e=>{
 $("refresh").addEventListener("click",load);
 document.addEventListener("keydown",e=>{ if(e.key==="/" && document.activeElement!==$("q")){e.preventDefault();$("q").focus();} });
 load();
+</script>
+
+<script>
+/* ---------- add entry ---------- */
+// Web app URL of the Apps Script bridge (apps_script/Code.gs). Empty = adding switched off.
+const ADD_URL = "";
+(function(){
+  const dlg=$("addDlg"), form=$("addForm"), PASS_KEY="aid-passcode";
+  const store={get(){try{return localStorage.getItem(PASS_KEY)||"";}catch(e){return "";}},
+               set(v){try{v?localStorage.setItem(PASS_KEY,v):localStorage.removeItem(PASS_KEY);}catch(e){}}};
+  const type=()=>form.querySelector('input[name="aType"]:checked').value;
+  const h=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  let blocked=false;
+
+  function open(){
+    form.reset(); $("aResult").className="msg full hide"; $("aCheck").innerHTML="";
+    const saved=store.get(); if(saved){ $("aPass").value=saved; $("aRemember").checked=true; }
+    for(const t of $("q").value.trim().split(/\s+/)){   // prefill from the current search
+      if(!t) continue;
+      if(isVariant(t) && !$("aVar").value) $("aVar").value=t;
+      else if(isPMID(t) && !$("aPmid").value) $("aPmid").value=t;
+      else if(/^[A-Za-z][A-Za-z0-9-]{1,14}$/.test(t) && !$("aGene").value) $("aGene").value=t.toUpperCase();
+    }
+    $("addSetup").classList.toggle("hide",!!ADD_URL);
+    syncType(); check();
+    dlg.showModal(); $("aGene").focus();
+  }
+  function close(){ dlg.close(); }
+  function syncType(){
+    $("aVarWrap").classList.toggle("hide",type()!=="variant");
+    form.querySelectorAll(".seg label").forEach(l=>l.classList.toggle("on",l.querySelector("input").checked));
+  }
+
+  // Live checks against the sheet data already loaded on the page.
+  function check(){
+    const G=normGene($("aGene").value), V=normVar($("aVar").value), P=$("aPmid").value.replace(/\s+/g,"").toLowerCase();
+    const out=[]; blocked=false;
+    if(G && DATA.length){
+      const geneRows=DATA.filter(d=>geneKey(d.gene)===G||normGene(d.gene)===G);
+      if(type()==="variant" && V){
+        const dup=geneRows.filter(r=>variantsOf(r).includes(V));
+        if(dup.length){ blocked=true; out.push(["no",`<b>${h(G)} ${h($("aVar").value.trim())}</b> is already in the sheet (row ${dup.map(r=>r.row).join(", ")}).`]); }
+      }
+      if(P && !blocked){
+        const same=geneRows.filter(r=>r.pmid.replace(/\s+/g,"").toLowerCase()===P);
+        if(same.length) out.push(["warn",`This paper is already cited for ${h(G)} (row ${same.map(r=>r.row).join(", ")}). Add it only if this is a different variant.`]);
+      }
+      if(!geneRows.length){
+        const sim=similarGenes(G);
+        if(sim.length) out.push(["warn",`${h(G)} isn't in the sheet yet. Did you mean <b>${sim.map(h).join(", ")}</b>?`]);
+        else if(GENE_MIM.size && !GENE_MIM.has(G)) out.push(["warn",`${h(G)} isn't a gene symbol OMIM knows. Check the spelling.`]);
+        else out.push(["info",`${h(G)} is a new gene for the sheet.`]);
+      } else if(!out.length) out.push(["info",`${h(G)} already has ${plural(geneRows.length,"entry","entries")}. This adds another.`]);
+    }
+    $("aCheck").innerHTML=out.map(([k,t])=>`<div class="msg ${k}">${t}</div>`).join("");
+    $("addSubmit").disabled=blocked||!ADD_URL;
+  }
+
+  function result(kind,text){ const r=$("aResult"); r.className="msg full "+kind; r.textContent=text; }
+
+  form.addEventListener("submit",async ev=>{
+    ev.preventDefault();
+    const isVar=type()==="variant";
+    const gene=$("aGene").value.trim(), variant=isVar?$("aVar").value.trim():"Gene paper",
+          pmid=$("aPmid").value.trim(), pass=$("aPass").value;
+    if(!gene){ result("no","Enter a gene symbol."); return $("aGene").focus(); }
+    if(isVar && !variant){ result("no","Enter the variant, or switch to Gene paper."); return $("aVar").focus(); }
+    if(!pmid){ result("no","Enter a PMID or DOI."); return $("aPmid").focus(); }
+    if(!pass){ result("no","Enter the team passcode."); return $("aPass").focus(); }
+    if(blocked || !ADD_URL) return;
+    const btn=$("addSubmit"); btn.disabled=true; btn.textContent="Adding…";
+    try{
+      // Sent as text/plain so the browser doesn't need a CORS preflight to Apps Script.
+      const res=await fetch(ADD_URL,{method:"POST",body:JSON.stringify({gene,variant,pmid,pheno:$("aPheno").value.trim(),remarks:$("aRem").value.trim(),passcode:pass})});
+      const j=await res.json();
+      if(!j.ok) throw new Error(j.error||"The sheet refused the entry.");
+      store.set($("aRemember").checked?pass:"");
+      result("ok",`Added to the sheet at row ${j.row}. Refreshing…`);
+      setTimeout(()=>{ close(); $("q").value=(gene+" "+(isVar?variant:"")).trim(); load(); },1200);
+    }catch(e){
+      result("no",(e && e.message && e.message!=="Failed to fetch")?e.message:"Couldn't reach the sheet. Check your connection and try again.");
+    }finally{ btn.disabled=blocked||!ADD_URL; btn.textContent="Add to sheet"; }
+  });
+
+  $("addOpen").addEventListener("click",open);
+  $("addClose").addEventListener("click",close);
+  $("addCancel").addEventListener("click",close);
+  form.addEventListener("input",check);
+  form.querySelectorAll('input[name="aType"]').forEach(r=>r.addEventListener("change",()=>{syncType();check();}));
+})();
 </script>
 </body>
 </html>
