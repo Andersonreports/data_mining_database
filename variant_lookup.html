@@ -40,6 +40,9 @@ button{font:inherit}
 .brand{display:flex;align-items:center;gap:12px}
 .logo{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;background:rgba(7,24,51,.55);border:1px solid rgba(255,179,71,.35);box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .brand h1{font:700 28px/1.1 var(--display);margin:0;letter-spacing:-.01em}
+.shine{background:linear-gradient(100deg,#fff 0%,#fff 38%,#ffc46b 45%,#f7931e 50%,#ffc46b 55%,#fff 62%,#fff 100%);background-size:250% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 9s ease-in-out infinite}
+@keyframes shine{0%{background-position:100% 0}70%,100%{background-position:0% 0}}
+@media (prefers-reduced-motion:reduce){.shine{animation:none}}
 .brand p{margin:4px 0 0;font-size:14px;color:#c9d6ea}
 .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .live{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#e4ecf7;background:rgba(7,24,51,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.14);padding:9px 14px;border-radius:999px}
@@ -183,7 +186,7 @@ footer{text-align:center;font-size:12.5px;color:var(--faint);margin-top:30px}
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M8.5 4.5h7M10.5 9.5h3M7.6 12h8.8M10.5 14.5h3M8.5 19.5h7" stroke="#ffd9a3" stroke-width="1.5"/><path d="M17 2c0 5-10 5-10 10s10 5 10 10" stroke="#ffc26b" stroke-width="2.3"/><path d="M7 2c0 5 10 5 10 10S7 17 7 22" stroke="#f7931e" stroke-width="2.3"/></svg>
         </div>
         <div>
-          <h1>Anderson Internal Database</h1>
+          <h1><span class="shine">Anderson Internal Database</span></h1>
           <p>Explore, analyze and interpret genetic variants</p>
         </div>
       </div>
