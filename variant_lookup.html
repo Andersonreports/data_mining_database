@@ -416,7 +416,10 @@ async function load(){
 /* ---------- matching ---------- */
 const normGene = s => s.toUpperCase().replace(/\s+/g,"");
 const normVar  = s => s.toLowerCase().replace(/\s+/g,"");
-const isVariant = t => /^[cpgnm]\./i.test(t) || />|del|dup|ins/i.test(t);
+// A variant starts with an HGVS prefix (c. p. g. n. m. r.), has a ">", or has del/dup/ins
+// right after a position number (1234delA, 123_124insT). Gene names such as INSR, GINS1,
+// DELE1 or KIDINS220 contain those letters but never after a digit.
+const isVariant = t => /^[cgmnpr]\./i.test(t) || />/.test(t) || /\d(del|dup|ins)/i.test(t);
 const isPMID = t => /^\d{6,9}$/.test(t);
 const variantsOf = r => r.variant.split(/[\n;,]+/).map(normVar).filter(Boolean); // a cell may hold several variants
 const geneKey = g => normGene(g).replace(/TYPE\d+$/,"");                           // "VWF type 3" -> VWF
