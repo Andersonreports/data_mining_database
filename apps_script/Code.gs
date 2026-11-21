@@ -115,7 +115,10 @@ function editRow(sh, d) {
   const changed = [];
   next.forEach((v, i) => {
     if (same(v) === same(now[i])) return;
-    sh.getRange(r, i + 1).setValue(i === 2 ? sourceValue(v) : v);
+    const cell = sh.getRange(r, i + 1);
+    const links = i === 1 ? phenoLinks(d) : [];
+    if (links.length) cell.setRichTextValue(linkedText(String(d.pheno).trim(), links));
+    else cell.setValue(i === 2 ? sourceValue(v) : v);
     changed.push(HEADERS[i]);
   });
   if (!changed.length) return { ok: true, row: r, unchanged: true };
@@ -129,14 +132,66 @@ function editRow(sh, d) {
 
 const HEADERS = ["gene", "OMIM phenotype", "PMID", "variant", "remarks"];
 
+// OMIM phenotypes the user picked from the page's suggestions: [{text, mim}].
+function phenoLinks(d) {
+  return (Array.isArray(d.phenoLinks) ? d.phenoLinks : [])
+    .filter(l => l && /^\d{6}$/.test(String(l.mim)) && String(l.text || "").trim())
+    .slice(0, 20);
+}
+
+// Phenotype text with each picked name linked to its OMIM entry, as curators do by hand.
+// Rich text is never read as a formula, so it needs no apostrophe guard.
+function linkedText(text, links) {
+  text = text.replace(/\r/g, "").slice(0, 2000);
+  const b = SpreadsheetApp.newRichTextValue().setText(text);
+  links.forEach(l => {
+    const t = String(l.text).trim(), s = text.indexOf(t);
+    if (s >= 0) b.setLinkUrl(s, s + t.length, "https://www.omim.org/entry/" + l.mim);
+  });
+  return b.build();
+}
+
+/**
+ * Papers LitVar2 links to a gene + variant. The page asks through here because
+ * LitVar2 doesn't allow requests straight from a browser. Results are cached 6 hours.
+ */
+const LITVAR = "https://www.ncbi.nlm.nih.gov/research/litvar2-api/variant";
+function litvar(gene, variant) {
+  gene = String(gene || "").toUpperCase().replace(/\s+/g, "");
+  variant = String(variant || "").replace(/\s+/g, "");
+  if (!/^[A-Z0-9-]{1,20}$/.test(gene) || !/^[cp]\.\S{1,80}$/i.test(variant)) return { ok: false, error: "Needs a gene and a c. or p. variant." };
+  const cache = CacheService.getScriptCache(), key = "lv-" + gene + "-" + variant;
+  const kept = cache.get(key);
+  if (kept) return JSON.parse(kept);
+  const get = u => {
+    const res = UrlFetchApp.fetch(u, { muteHttpExceptions: true });
+    return res.getResponseCode() === 200 ? JSON.parse(res.getContentText()) : null;
+  };
+  const out = { ok: true, query: gene + " " + variant, n: 0, pmids: [] };
+  const hit = (get(LITVAR + "/autocomplete/?query=" + encodeURIComponent(gene + " " + variant)) || [])
+    .filter(h => (h.gene || []).map(g => String(g).toUpperCase()).indexOf(gene) >= 0)[0];
+  if (hit) {
+    const pm = ((get(LITVAR + "/get/" + encodeURIComponent(hit._id) + "/publications") || {}).pmids || []).map(String);
+    out.n = pm.length; out.pmids = pm.slice(0, 20);
+  }
+  cache.put(key, JSON.stringify(out), 21600);
+  return out;
+}
+
 // A plain PMID is stored as a number, as in the rest of the sheet; anything else as text.
 function sourceValue(s) { return /^\d+$/.test(s) ? Number(s) : s; }
 
 // Compares cell text the way the page does: whitespace-insensitive at the edges and inside.
 function same(v) { return String(v == null ? "" : v).replace(/\s+/g, " ").trim(); }
 
-// Lets you open the /exec URL in a browser to check the deployment is live.
-function doGet() {
+// ?litvar=1&gene=TP53&variant=c.573del returns LitVar2 paper suggestions.
+// Without parameters: opening the /exec URL in a browser checks the deployment is live.
+function doGet(e) {
+  const p = (e && e.parameter) || {};
+  if (p.litvar) {
+    try { return reply(litvar(p.gene, p.variant)); }
+    catch (err) { return reply({ ok: false, error: String((err && err.message) || err) }); }
+  }
   return reply({ ok: true, service: "Anderson Internal Database add-entry" });
 }
 
@@ -149,4 +204,10 @@ function clean(v) {
 
 function reply(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Run this once from the editor (function dropdown → testLitvar → Run) to grant the
+// "connect to an external service" permission the LitVar2 lookup needs. Writes nothing.
+function testLitvar() {
+  Logger.log(JSON.stringify(litvar("TP53", "c.573del")));
 }

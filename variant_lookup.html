@@ -141,6 +141,18 @@ tr.hit td:first-child{box-shadow:inset 3px 0 0 var(--ok)}
 .row a:hover{border-color:var(--teal);color:var(--teal)}
 .editbtn{display:flex;align-items:center;gap:5px;margin-top:6px;font:600 12.5px var(--sans);color:var(--teal-ink);background:var(--teal-soft);border:0;border-radius:6px;padding:4px 10px;cursor:pointer;white-space:nowrap}
 .editbtn:hover{background:#d6e4fd}
+.savebtn{display:flex;align-items:center;gap:5px;margin-top:6px;font:600 12px var(--sans);color:#9a4a00;background:var(--warn-soft);border:1px solid var(--warn-line);border-radius:6px;padding:3px 9px;cursor:pointer;white-space:nowrap}
+.savebtn:hover{background:#ffecd2;border-color:var(--orange)}
+.add .sugg{border:1px solid var(--line);background:#fafbfd;border-radius:10px;padding:10px 12px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:8px}
+.add .sugg .opts{display:flex;flex-wrap:wrap;gap:6px}
+.add .sugg .pm{display:inline-flex;align-items:center;border:1px solid #d0d5dd;border-radius:8px;overflow:hidden;background:#fff}
+.add .sugg .pm button{border:0;background:none;font:500 12.5px var(--mono);color:var(--ink);padding:5px 9px;cursor:pointer}
+.add .sugg .pm button:hover{background:var(--teal-soft)}
+.add .sugg .pm.on{border-color:var(--teal);background:var(--teal-soft)}
+.add .sugg .pm a{padding:5px 8px;border-left:1px solid #d0d5dd;color:var(--teal);display:inline-flex}
+.add .sugg label.ph{display:flex;gap:8px;align-items:flex-start;color:var(--ink);font-size:13px;font-weight:400;cursor:pointer}
+.add .sugg label.ph input{margin-top:3px}
+.add .sugg label.ph a{font:500 12px var(--mono);white-space:nowrap;text-decoration:none}
 .todo{display:flex;flex-wrap:wrap;gap:10px;padding:18px 24px}
 .todo .editbtn{margin:0;height:34px;padding:0 12px;font-size:13px}
 .todo .editbtn code{font:500 12.5px var(--mono)}
@@ -324,7 +336,9 @@ dialog.add::backdrop{background:rgba(7,24,51,.55);backdrop-filter:blur(3px)}
       </div>
       <label class="f" id="aVarWrap">Variant *<small>HGVS, e.g. c.1226G&gt;A or p.Arg409His; one per line if several</small><textarea id="aVar" rows="1" class="mono" autocomplete="off" spellcheck="false" placeholder="c.1226G>A"></textarea></label>
       <label class="f">PMID or DOI<small>Optional: can be added later with Edit. Number only for PubMed, or the full DOI link</small><input id="aPmid" type="text" class="mono" autocomplete="off" spellcheck="false" placeholder="37006978"></label>
+      <div class="sugg full hide" id="pmSugg" aria-live="polite"></div>
       <label class="f full">OMIM phenotype<small>Leave empty if not known; the page will link the gene's MIM entry</small><input id="aPheno" type="text" autocomplete="off" placeholder="e.g. Factor XIIIA deficiency"></label>
+      <div class="sugg full hide" id="phSugg" aria-live="polite"></div>
       <label class="f full">Remarks<textarea id="aRem" rows="2" placeholder="Optional"></textarea></label>
       <div class="check full" id="aCheck" aria-live="polite"></div>
       <div class="full hide" id="aPassWrap" style="display:flex;flex-direction:column;gap:8px">
@@ -525,7 +539,13 @@ function search(){
 
 /* ---------- rendering ---------- */
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+// "Save … to sheet": opens the row's edit form with suggestions for that field.
+const saveBtn = (r,field,label) => `<button type="button" class="savebtn" data-edit="${r.row}" data-field="${field}">${PEN}${label}</button>`;
 function srcCell(r){
+  const html=srcLinks(r);
+  return r.pmid ? html : html + saveBtn(r,"pmid","Save PMID to sheet");
+}
+function srcLinks(r){
   const p=r.pmid, link=linksFor(r).s;
   const a=(href,label)=>`<a href="${esc(href)}" target="_blank" rel="noopener">${label} ${ICON.ext}</a>`;
   if(link && !/^\d+$/.test(p)){
@@ -576,6 +596,10 @@ function geneMim(name){
   return cands.length===1 ? {symbol:cands[0], mim:GENE_MIM.get(cands[0]), corrected:true, from:g} : {symbol:g, mim:null};
 }
 function phenoCell(r){
+  const html=phenoLinks(r);
+  return r.pheno || linksFor(r).o ? html : html + saveBtn(r,"pheno","Save phenotype to sheet");
+}
+function phenoLinks(r){
   const o=linksFor(r).o;
   const more = r.pheno && r.pheno.length>110 ? '<button type="button" class="more">Show more</button>' : "";
   if(o) return `<a class="omim" href="${esc(o)}" target="_blank" rel="noopener" title="Open OMIM entry"><div>${esc(r.pheno)}</div></a>${more}`;
@@ -673,7 +697,7 @@ const ADD_URL = "https://script.google.com/macros/s/AKfycbwtQ7HWhBNHC1u7TAvBAojW
   let editing=null;   // the sheet record being edited, or null when adding
 
   // rec given = edit that row; otherwise add a new entry, prefilled from the search box.
-  function open(rec){
+  function open(rec,field){
     editing=rec||null;
     form.reset(); $("aResult").className="msg full hide"; $("aCheck").innerHTML="";
     const saved=store.get(); if(saved){ $("aPass").value=saved; $("aRemember").checked=true; }
@@ -694,10 +718,84 @@ const ADD_URL = "https://script.google.com/macros/s/AKfycbwtQ7HWhBNHC1u7TAvBAojW
     $("addTitle").textContent=editing?`Edit row ${editing.row}`:"Add an entry";
     $("addSubmit").textContent=submitLabel();
     $("addSetup").classList.toggle("hide",!!ADD_URL);
+    phPicked=[]; showSuggestions();
     syncType(); check();
     dlg.showModal();
-    const first=editing ? (!editing.pmid?$("aPmid"):$("aPheno")) : $("aGene");
+    const first = field==="pheno" ? $("aPheno") : field==="pmid" ? $("aPmid")
+                : editing ? (!editing.pmid?$("aPmid"):$("aPheno")) : $("aGene");
     first.focus();
+  }
+
+  /* ----- suggestions for an edited row's empty PMID / OMIM phenotype ----- */
+  let phPicked=[];   // [{text, mim}] ticked in the phenotype suggestions
+  const PM=id=>`https://pubmed.ncbi.nlm.nih.gov/${id}/`;
+  function showSuggestions(){
+    const rec=editing;
+    $("pmSugg").classList.add("hide"); $("phSugg").classList.add("hide");
+    if(!rec) return;
+    const gm=geneMim(rec.gene), gene=gm?gm.symbol:geneKey(rec.gene).replace(/[^A-Z0-9-]/g,"");
+    const v=rec.variant.split(/\n+/).map(s=>s.trim()).find(isSpecific)||"";
+    if(!rec.pmid && !linksFor(rec).s && gene) pmidSuggestions(rec,gene,v);
+    if(!rec.pheno && gene) phenoSuggestions(rec,gene);
+  }
+  function panel(id,html){ const p=$(id); p.innerHTML=html; p.classList.remove("hide"); }
+
+  async function pmidSuggestions(rec,gene,v){
+    const search=`https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(v?`${gene} AND "${v}"`:gene)}`;
+    const none=why=>panel("pmSugg",`<span>${why} <a href="${search}" target="_blank" rel="noopener">Search PubMed ${ICON.ext}</a>, then paste the PMID above.</span>`);
+    if(!v) return none("No specific variant on this row, so there are no paper suggestions.");
+    let lv=linksFor(rec).lv;
+    if(!lv){
+      panel("pmSugg","<span>Looking up papers for this variant in LitVar2…</span>");
+      try{
+        const j=await (await fetch(`${ADD_URL}?litvar=1&gene=${encodeURIComponent(gene)}&variant=${encodeURIComponent(v)}`)).json();
+        if(!j.ok) throw new Error(j.error);
+        lv=j.n?{n:j.n,p:j.pmids,q:j.query}:null;
+      }catch(e){ if(editing===rec) none("Couldn't reach LitVar2."); return; }
+    }
+    if(editing!==rec) return;   // dialog closed or moved to another row meanwhile
+    if(!lv||!lv.p||!lv.p.length) return none(`LitVar2 has no papers for ${esc(gene)} ${esc(v)}.`);
+    panel("pmSugg",`<span><b>Suggested papers</b> from LitVar2 for ${esc(lv.q||gene+" "+v)}. Open one to check it, then pick it.${lv.n>lv.p.length?` Showing ${lv.p.length} of ${lv.n}.`:""}</span>
+      <div class="opts">${lv.p.map(id=>`<span class="pm" data-pm="${esc(id)}"><button type="button" title="Use this PMID">${esc(id)}</button><a href="${PM(esc(id))}" target="_blank" rel="noopener" title="Open in PubMed" aria-label="Open PMID ${esc(id)} in PubMed">${ICON.ext}</a></span>`).join("")}</div>`);
+    markPmid();
+  }
+  function markPmid(){ const cur=$("aPmid").value.trim(); $("pmSugg").querySelectorAll(".pm").forEach(s=>s.classList.toggle("on",s.dataset.pm===cur)); }
+  $("pmSugg").addEventListener("click",e=>{
+    const b=e.target.closest(".pm button"); if(!b) return;
+    $("aPmid").value=b.parentElement.dataset.pm; markPmid(); check();
+  });
+
+  // OMIM phenotypes per gene, from ClinVar's public gene–condition list (loaded once, on demand).
+  let CLINVAR=null;
+  function clinvarPhenos(){
+    return CLINVAR ||= fetch("https://ftp.ncbi.nlm.nih.gov/pub/clinvar/gene_condition_source_id")
+      .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+      .then(t=>{
+        const m=new Map();
+        for(const line of t.split("\n")){
+          const c=line.split("\t");   // GeneID, AssociatedGenes, RelatedGenes, ConceptID, DiseaseName, Source, SourceID, DiseaseMIM
+          if(line[0]==="#" || !c[1] || !/^\d{6}$/.test(c[7]||"")) continue;
+          const g=c[1].toUpperCase(); if(!m.has(g)) m.set(g,new Map());
+          m.get(g).set(c[7],c[4]);
+        }
+        return m;
+      })
+      .catch(e=>{ CLINVAR=null; throw e; });
+  }
+  async function phenoSuggestions(rec,gene){
+    panel("phSugg","<span>Loading OMIM phenotypes for this gene…</span>");
+    let list;
+    try{ list=[...((await clinvarPhenos()).get(gene)||new Map())].map(([mim,text])=>({mim,text})); }
+    catch(e){ if(editing===rec) panel("phSugg","<span>Couldn't load OMIM phenotype suggestions. Type the phenotype instead.</span>"); return; }
+    if(editing!==rec) return;
+    if(!list.length) return panel("phSugg",`<span>No OMIM phenotype is linked to ${esc(gene)} in ClinVar. <a href="https://www.omim.org/search?search=${encodeURIComponent(gene)}" target="_blank" rel="noopener">Search OMIM ${ICON.ext}</a></span>`);
+    panel("phSugg",`<span><b>OMIM phenotypes for ${esc(gene)}</b> (via ClinVar). Tick the ones that apply; each is saved with its OMIM link.</span>
+      ${list.map((p,i)=>`<label class="ph"><input type="checkbox" data-i="${i}"><span>${esc(p.text)} <a href="https://www.omim.org/entry/${p.mim}" target="_blank" rel="noopener">MIM ${p.mim} ${ICON.ext}</a></span></label>`).join("")}`);
+    $("phSugg").onchange=()=>{
+      phPicked=[...$("phSugg").querySelectorAll("input:checked")].map(x=>list[x.dataset.i]);
+      $("aPheno").value=phPicked.map(p=>p.text).join(",");
+      check();
+    };
   }
   const submitLabel=()=>editing?"Save changes":"Add to sheet";
   function close(){ dlg.close(); }
@@ -752,6 +850,18 @@ const ADD_URL = "https://script.google.com/macros/s/AKfycbwtQ7HWhBNHC1u7TAvBAojW
     return editing && !editing.variant ? "" : "Gene paper";
   }
 
+  // Saved links are filed under gene + phenotype + variant text, so an edit would hide them
+  // until update_links.py runs again. Re-file them under the new text for this session,
+  // and add the OMIM link just saved when the whole phenotype is one linked name.
+  function carryLinks(old,body){
+    const L={...linksFor(old)};
+    if(body.pmid!==old.pmid){ delete L.s; delete L.lv; }
+    if(body.pheno!==old.pheno) delete L.o;
+    const pl=body.phenoLinks||[];
+    if(pl.length===1 && pl[0].text===body.pheno) L.o=`https://www.omim.org/entry/${pl[0].mim}`;
+    if(Object.keys(L).length) LINKS[linkKey(body)]=L;
+  }
+
   function result(kind,text){ const r=$("aResult"); r.className="msg full "+kind; r.textContent=text; }
 
   form.addEventListener("submit",async ev=>{
@@ -770,6 +880,8 @@ const ADD_URL = "https://script.google.com/macros/s/AKfycbwtQ7HWhBNHC1u7TAvBAojW
       // The values the user saw: the script refuses the edit if the row no longer holds them.
       const {gene:g,pheno,pmid:p,variant:v,remarks}=editing;
       Object.assign(body,{action:"edit",row:editing.row,orig:{gene:g,pheno,pmid:p,variant:v,remarks}});
+      // OMIM links for ticked phenotypes whose name is still in the text
+      body.phenoLinks=phPicked.filter(x=>body.pheno.includes(x.text)).map(({text,mim})=>({text,mim}));
     }
     try{
       // Sent as text/plain so the browser doesn't need a CORS preflight to Apps Script.
@@ -782,6 +894,7 @@ const ADD_URL = "https://script.google.com/macros/s/AKfycbwtQ7HWhBNHC1u7TAvBAojW
       }
       if(passShown) store.set($("aRemember").checked?pass:"");
       if(editing){
+        if(!j.unchanged) carryLinks(editing,body);
         result("ok", j.unchanged ? "Nothing was changed." : `Saved row ${j.row} (${j.changed.join(", ")}). Refreshing…`);
         setTimeout(()=>{ close(); if(!j.unchanged) load(); }, j.unchanged?700:1200);
       } else {
@@ -798,12 +911,12 @@ const ADD_URL = "https://script.google.com/macros/s/AKfycbwtQ7HWhBNHC1u7TAvBAojW
   document.addEventListener("click",e=>{
     const b=e.target.closest("[data-edit]"); if(!b) return;
     const rec=DATA.find(d=>d.row===Number(b.dataset.edit));
-    if(rec) open(rec);
+    if(rec) open(rec,b.dataset.field);
   });
   $("addOpen").addEventListener("click",()=>open());
   $("addClose").addEventListener("click",close);
   $("addCancel").addEventListener("click",close);
-  form.addEventListener("input",check);
+  form.addEventListener("input",()=>{ check(); markPmid(); });
   form.querySelectorAll('input[name="aType"]').forEach(r=>r.addEventListener("change",()=>{syncType();check();}));
 })();
 </script>
